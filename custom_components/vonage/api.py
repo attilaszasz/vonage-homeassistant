@@ -169,7 +169,7 @@ class VonageApiClient:
             
             response = client.voice.create_call({  # type: ignore[arg-type]
                 "to": [{"type": "phone", "number": to_number}],
-                "from": {"type": "phone", "number": from_number},
+                "from_": {"type": "phone", "number": from_number},
                 "ncco": ncco
             })
             
