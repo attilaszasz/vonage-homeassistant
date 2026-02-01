@@ -167,11 +167,25 @@ class VonageApiClient:
             _LOGGER.debug("Voice call - Formatted phone number: %s", to_number)
             from_number = self._format_phone_for_voice(self.phone_number)
             
-            response = client.voice.create_call({  # type: ignore[arg-type]
+            # Create call with proper from_ parameter structure
+            # Try alternative parameter names in case SDK expects 'from' at root level
+            call_data = {
                 "to": [{"type": "phone", "number": to_number}],
-                "from_": {"type": "phone", "number": from_number},
+                "from": {"type": "phone", "number": from_number},
                 "ncco": ncco
-            })
+            }
+            
+            _LOGGER.debug("Voice call data: %s", call_data)
+            try:
+                response = client.voice.create_call(call_data)  # type: ignore[arg-type]
+            except Exception as e:
+                # If 'from' fails, try 'from_'
+                if "from_" in str(e):
+                    call_data["from_"] = call_data.pop("from")
+                    _LOGGER.debug("Retrying with from_: %s", call_data)
+                    response = client.voice.create_call(call_data)  # type: ignore[arg-type]
+                else:
+                    raise
             
             # Handle the response object
             call_uuid = getattr(response, 'uuid', '')
