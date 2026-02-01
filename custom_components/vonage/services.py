@@ -17,8 +17,8 @@ SERVICE_MAKE_CALL = "make_call"
 
 # Service schema for vonage.make_call
 MAKE_CALL_SCHEMA = vol.Schema({
-    vol.Required("target"): cv.string,
-    vol.Required("message"): cv.string,
+    vol.Required("to"): cv.string,
+    vol.Optional("text"): cv.string,
     vol.Optional("language"): cv.string,
     vol.Optional("style"): vol.Coerce(int),
 })
@@ -29,8 +29,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
     
     async def async_handle_make_call(call: ServiceCall) -> None:
         """Handle the vonage.make_call service call."""
-        target: str = call.data["target"]
-        message: str = call.data["message"]
+        to: str = call.data["to"]
+        text: str = call.data.get("text", "Hello from Home Assistant")
         language: Optional[str] = call.data.get("language")
         style: Optional[int] = call.data.get("style")
         
@@ -70,8 +70,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         
         try:
             response = await api_client.make_call(
-                to=target,
-                text=message,
+                to=to,
+                text=text,
                 language=final_language,
                 style=final_style
             )
@@ -81,7 +81,7 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
                 response.status
             )
         except Exception as err:
-            _LOGGER.error("Failed to make voice call to %s: %s", target, err)
+            _LOGGER.error("Failed to make voice call to %s: %s", to, err)
             raise
     
     # Register the service
