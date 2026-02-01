@@ -20,5 +20,21 @@
       "cannot_connect": "Failed to connect to Vonage API",
       "voice_incomplete": "Both Application ID and Private Key are required for Voice API"
     }
+  },
+  "services": {
+    "make_call": {
+      "name": "Make voice call",
+      "description": "Make a voice call using Vonage Voice API",
+      "fields": {
+        "to": {
+          "name": "To",
+          "description": "Phone number to call (E.164 format, e.g., +1234567890)"
+        },
+        "text": {
+          "name": "Text",
+          "description": "Text to be spoken during the call"
+        }
+      }
+    }
   }
 }

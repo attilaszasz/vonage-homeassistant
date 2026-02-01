@@ -1,0 +1,20 @@
+# Vonage integration services
+make_call:
+  name: Make voice call
+  description: Make a voice call using Vonage Voice API
+  fields:
+    to:
+      name: To
+      description: Phone number to call (E.164 format, e.g., +1234567890)
+      required: true
+      example: "+1234567890"
+      selector:
+        text:
+    text:
+      name: Text
+      description: Text to be spoken during the call
+      required: false
+      example: "Hello, this is a test call from Home Assistant"
+      selector:
+        text:
+          multiline: true

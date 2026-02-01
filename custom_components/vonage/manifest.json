@@ -8,6 +8,5 @@
   "integration_type": "service",
   "iot_class": "cloud_push",
   "requirements": ["vonage>=3.0.0", "PyJWT>=2.0.0"],
-  "version": "1.0.0",
-  "homeassistant": "2024.1.0"
+  "version": "1.0.0"
 }
