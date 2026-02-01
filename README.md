@@ -175,7 +175,7 @@ Logs will show API requests/responses (credentials are never logged).
 
 ## Contributing
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+Contributions are welcome! Please open an issue or submit a pull request.
 
 ## Author
 
