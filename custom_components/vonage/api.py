@@ -63,6 +63,30 @@ class VonageApiClient:
         self.application_id = application_id
         self.private_key = private_key
 
+    def _format_phone_for_voice(self, phone: str) -> str:
+        """Format phone number for Voice API requirements.
+        
+        Voice API requires pattern: ^[1-9]\\d{6,14}$ but users provide 0040 format.
+        We convert 0040XXXXXXX to 40XXXXXXX for API compatibility.
+        """
+        # Handle standard international format starting with 00
+        if phone.startswith('00'):
+            phone = phone[2:]  # Remove 00 prefix, keep country code and number
+        elif phone.startswith('+'):
+            phone = phone[1:]  # Remove + prefix
+        
+        # Remove any non-digit characters
+        phone = ''.join(filter(str.isdigit, phone))
+        
+        # Validate the formatted number
+        if not phone or len(phone) < 7 or len(phone) > 15:
+            raise HomeAssistantError(f"Invalid phone number length: {phone}. Must be 7-15 digits.")
+        
+        if not phone[0].isdigit() or phone[0] == '0':
+            raise HomeAssistantError(f"Invalid phone number format: {phone}. Must start with country code 1-9.")
+        
+        return phone
+
     def _send_sms_sync(self, to: str, text: str) -> SmsResponse:
         """Synchronous SMS send for executor."""
         try:
@@ -135,14 +159,11 @@ class VonageApiClient:
                 "style": style
             }]
             
-            # Normalize phone numbers for Voice API (replace + with 00 international prefix)
-            # User input should keep + for standard E.164 format  
-            to_number = to.replace('+', '00') if to.startswith('+') else to
-            from_number = self.phone_number.replace('+', '00') if self.phone_number.startswith('+') else self.phone_number
-            
-            # Ensure the number meets Voice API requirements
-            if not to_number or not to_number[0:2] == '00':
-                raise HomeAssistantError(f"Invalid phone number format: {to}. Must be in international format (+CountryCode).")
+            # Convert phone numbers for Voice API
+            # Voice API requires numbers in format: CountryCode + Number (no + prefix, no leading zeros)
+            # Pattern: ^[1-9]\d{6,14}$ - must start with 1-9, 6-14 additional digits
+            to_number = self._format_phone_for_voice(to)
+            from_number = self._format_phone_for_voice(self.phone_number)
             
             response = client.voice.create_call({  # type: ignore[arg-type]
                 "to": [{"type": "phone", "number": to_number}],
