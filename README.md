@@ -166,7 +166,7 @@ Logs will show API requests/responses (credentials are never logged).
 ## Support
 
 - [Home Assistant Community Forum](https://community.home-assistant.io/)
-- [GitHub Issues](https://github.com/attila-vonage/vonage-homeassistant/issues)
+- [GitHub Issues](https://github.com/attilaszasz/vonage-homeassistant/issues)
 - [Vonage API Documentation](https://developer.vonage.com/)
 
 ## Contributing
@@ -185,9 +185,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-orange.svg
 [hacs-url]: https://github.com/hacs/integration
-[release-shield]: https://img.shields.io/github/v/release/attila-vonage/vonage-homeassistant
-[release-url]: https://github.com/attila-vonage/vonage-homeassistant/releases
-[commits-shield]: https://img.shields.io/github/commit-activity/y/attila-vonage/vonage-homeassistant
-[commits-url]: https://github.com/attila-vonage/vonage-homeassistant/graphs/commit-activity
-[license-shield]: https://img.shields.io/github/license/attila-vonage/vonage-homeassistant
-[license-url]: https://github.com/attila-vonage/vonage-homeassistant/blob/main/LICENSE
+[release-shield]: https://img.shields.io/github/v/release/attilaszasz/vonage-homeassistant
+[release-url]: https://github.com/attilaszasz/vonage-homeassistant/releases
+[commits-shield]: https://img.shields.io/github/commit-activity/y/attilaszasz/vonage-homeassistant
+[commits-url]: https://github.com/attilaszasz/vonage-homeassistant/graphs/commit-activity
+[license-shield]: https://img.shields.io/github/license/attilaszasz/vonage-homeassistant
+[license-url]: https://github.com/attilaszasz/vonage-homeassistant/blob/main/LICENSE
