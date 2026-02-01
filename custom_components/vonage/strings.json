@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vonage Configuration",
+        "description": "Configure your Vonage integration. SMS requires API Key and Secret. Voice calls require Application ID and Private Key.",
+        "data": {
+          "api_key": "API Key",
+          "api_secret": "API Secret",
+          "phone_number": "Phone Number",
+          "application_id": "Application ID (optional)",
+          "private_key": "Private Key (optional)",
+          "default_language": "Default Language",
+          "default_voice_style": "Default Voice Style"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid Vonage credentials",
+      "cannot_connect": "Failed to connect to Vonage API",
+      "voice_incomplete": "Both Application ID and Private Key are required for Voice API"
+    }
+  }
+}

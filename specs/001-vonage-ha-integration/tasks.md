@@ -17,13 +17,13 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure per plan: `custom_components/vonage/` and `tests/`
-- [ ] T002 [P] Create `custom_components/vonage/const.py` with DOMAIN and config key constants from data-model.md
-- [ ] T003 [P] Create `custom_components/vonage/manifest.json` with domain "vonage", version "1.0.0", requirements ["vonage>=3.0.0"], iot_class "cloud_push", homeassistant "2024.1.0"
-- [ ] T004 [P] Create `hacs.json` at repo root with name "Vonage", homeassistant "2024.1.0", render_readme true
-- [ ] T005 [P] Create `requirements.txt` with vonage>=3.0.0
-- [ ] T006 [P] Create `requirements_test.txt` with pytest, pytest-homeassistant-custom-component, pytest-asyncio, pytest-cov
-- [ ] T007 Create empty `custom_components/vonage/__init__.py` (will be implemented in Phase 2)
+- [x] T001 Create project directory structure per plan: `custom_components/vonage/` and `tests/`
+- [x] T002 [P] Create `custom_components/vonage/const.py` with DOMAIN and config key constants from data-model.md
+- [x] T003 [P] Create `custom_components/vonage/manifest.json` with domain "vonage", version "1.0.0", requirements ["vonage>=3.0.0"], iot_class "cloud_push", homeassistant "2024.1.0"
+- [x] T004 [P] Create `hacs.json` at repo root with name "Vonage", homeassistant "2024.1.0", render_readme true
+- [x] T005 [P] Create `requirements.txt` with vonage>=3.0.0
+- [x] T006 [P] Create `requirements_test.txt` with pytest, pytest-homeassistant-custom-component, pytest-asyncio, pytest-cov
+- [x] T007 Create empty `custom_components/vonage/__init__.py` (will be implemented in Phase 2)
 
 **Checkpoint**: Project structure exists, can be recognized by HACS and hassfest.
 
@@ -35,33 +35,33 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create `tests/conftest.py` with pytest-homeassistant-custom-component fixtures and mock Vonage client
-- [ ] T009 Create `custom_components/vonage/api.py` with VonageApiClient class skeleton:
+- [x] T008 Create `tests/conftest.py` with pytest-homeassistant-custom-component fixtures and mock Vonage client
+- [x] T009 Create `custom_components/vonage/api.py` with VonageApiClient class skeleton:
   - Constructor takes api_key, api_secret, phone_number, optional application_id, optional private_key
   - Placeholder methods: `async send_sms(to, text)`, `async make_call(to, text, language, style)`
   - Dataclasses: SmsRequest, SmsResponse, VoiceCallRequest, VoiceCallResponse per data-model.md
-- [ ] T010 Implement VonageApiClient.send_sms() in `custom_components/vonage/api.py`:
+- [x] T010 Implement VonageApiClient.send_sms() in `custom_components/vonage/api.py`:
   - Use vonage SDK with Auth(api_key, api_secret)
   - Map Vonage status codes to exceptions per research.md error mapping
   - Return SmsResponse with message_id and status
-- [ ] T011 Implement VonageApiClient.make_call() in `custom_components/vonage/api.py`:
+- [x] T011 Implement VonageApiClient.make_call() in `custom_components/vonage/api.py`:
   - Use vonage SDK with Auth(application_id, private_key)
   - Build NCCO with talk action per research.md pattern
   - Handle case where Voice credentials not configured (raise HomeAssistantError)
   - Return VoiceCallResponse with uuid and status
-- [ ] T012 Create `tests/test_api.py` with unit tests for VonageApiClient:
+- [x] T012 Create `tests/test_api.py` with unit tests for VonageApiClient:
   - Test send_sms success with mocked SDK response
   - Test send_sms failure with invalid credentials (status 4)
   - Test send_sms failure with rate limit (status 1)
   - Test make_call success with mocked SDK response
   - Test make_call when Voice not configured raises error
-- [ ] T013 Create `custom_components/vonage/strings.json` with config flow strings:
+- [x] T013 Create `custom_components/vonage/strings.json` with config flow strings:
   - step.user.title, step.user.description
   - step.user.data.api_key, step.user.data.api_secret, step.user.data.phone_number
   - step.user.data.application_id, step.user.data.private_key
   - step.user.data.default_language, step.user.data.default_voice_style
   - error.invalid_auth, error.cannot_connect
-- [ ] T014 [P] Create `custom_components/vonage/translations/en.json` as copy of strings.json
+- [x] T014 [P] Create `custom_components/vonage/translations/en.json` as copy of strings.json
 
 **Checkpoint**: API wrapper tested and working with mocked responses. Config flow strings ready.
 
@@ -75,37 +75,37 @@
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Create `custom_components/vonage/config_flow.py`:
+- [x] T015 [US1] Create `custom_components/vonage/config_flow.py`:
   - VonageConfigFlow class with domain=DOMAIN
   - async_step_user with form for api_key, api_secret, phone_number (required)
   - Optional fields: application_id, private_key, default_language, default_voice_style
   - Validate SMS credentials by calling api.test_credentials() before creating entry
   - Use vol schema with cv.string validators per data-model.md validation rules
-- [ ] T016 [US1] Add credential validation helper to `custom_components/vonage/api.py`:
+- [x] T016 [US1] Add credential validation helper to `custom_components/vonage/api.py`:
   - `async test_sms_credentials(api_key, api_secret) -> bool`
   - Attempt to create Vonage client and make account info request
   - Return True if successful, False if auth fails
-- [ ] T017 [US1] Create `tests/test_config_flow.py`:
+- [x] T017 [US1] Create `tests/test_config_flow.py`:
   - Test successful config flow with valid credentials
   - Test config flow shows error with invalid credentials
   - Test config flow creates entry with correct data structure
   - Test optional Voice fields can be omitted
   - Test credentials (api_secret, private_key) are not present in logs
-- [ ] T018 [US1] Create `custom_components/vonage/notify.py`:
+- [x] T018 [US1] Create `custom_components/vonage/notify.py`:
   - VonageSmsNotificationService extending BaseNotificationService
   - async_send_message implementation using self.api.send_sms()
   - Handle errors and raise HomeAssistantError with user-friendly messages
   - async_get_service factory function per HA notify platform pattern
-- [ ] T019 [US1] Create `tests/test_notify.py`:
+- [x] T019 [US1] Create `tests/test_notify.py`:
   - Test send_message with single target
   - Test send_message with multiple targets
   - Test send_message error handling (invalid number, rate limit)
-- [ ] T020 [US1] Implement `custom_components/vonage/__init__.py`:
+- [x] T020 [US1] Implement `custom_components/vonage/__init__.py`:
   - async_setup_entry: create VonageApiClient from config entry data
   - Store client in hass.data[DOMAIN][entry.entry_id]
   - Forward entry setup to notify platform
   - async_unload_entry: cleanup hass.data and unload platforms
-- [ ] T021 [US1] Run all tests and verify SMS flow works end-to-end with mocks
+- [x] T021 [US1] Run all tests and verify SMS flow works end-to-end with mocks
 
 **Checkpoint**: User Story 1 complete. Integration can be configured and SMS can be sent. This is the MVP.
 
@@ -121,27 +121,27 @@
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Create `custom_components/vonage/services.py`:
+- [x] T022 [US2] Create `custom_components/vonage/services.py`:
   - MAKE_CALL_SCHEMA per contracts/services.md
   - async_handle_make_call service handler
   - Get default language/style from config entry if not provided in service data
   - Call api.make_call() and handle errors
-- [ ] T023 [US2] Add Voice credential validation to `custom_components/vonage/api.py`:
+- [x] T023 [US2] Add Voice credential validation to `custom_components/vonage/api.py`:
   - `async test_voice_credentials(application_id, private_key) -> bool`
   - Attempt to generate JWT — success means credentials valid
-- [ ] T024 [US2] Update `custom_components/vonage/config_flow.py`:
+- [x] T024 [US2] Update `custom_components/vonage/config_flow.py`:
   - If application_id and private_key provided, validate them before creating entry
   - Show specific error if Voice credentials invalid
-- [ ] T025 [US2] Register vonage.make_call service in `custom_components/vonage/__init__.py`:
+- [x] T025 [US2] Register vonage.make_call service in `custom_components/vonage/__init__.py`:
   - Import and call async_setup_services() from services.py in async_setup_entry
   - Unregister service in async_unload_entry
-- [ ] T026 [US2] Create `tests/test_services.py`:
+- [x] T026 [US2] Create `tests/test_services.py`:
   - Test make_call service with valid Voice config
   - Test make_call service raises error when Voice not configured
   - Test make_call with language/style override
   - Test make_call error handling (invalid number, rate limit)
-- [ ] T027 [US2] Update config flow tests for Voice credential validation
-- [ ] T028 [US2] Run all tests and verify Voice flow works end-to-end with mocks
+- [x] T027 [US2] Update config flow tests for Voice credential validation
+- [x] T028 [US2] Run all tests and verify Voice flow works end-to-end with mocks
 
 **Checkpoint**: User Story 2 complete. Voice calls can be made via service. Both user stories functional.
 
