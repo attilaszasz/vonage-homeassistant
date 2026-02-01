@@ -67,7 +67,7 @@ class VonageApiClient:
         """Synchronous SMS send for executor."""
         try:
             # Import here to avoid import errors during testing
-            from vonage import Vonage, Auth
+            from vonage import Vonage, Auth  # type: ignore[attr-defined]
             
             auth = Auth(api_key=self.api_key, api_secret=self.api_secret)
             client = Vonage(auth=auth)
@@ -122,7 +122,7 @@ class VonageApiClient:
         """Synchronous make call for executor."""
         try:
             # Import here to avoid import errors during testing
-            from vonage import Vonage, Auth
+            from vonage import Vonage, Auth  # type: ignore[attr-defined]
             
             auth = Auth(application_id=self.application_id, private_key=self.private_key)
             client = Vonage(auth=auth)
@@ -179,7 +179,7 @@ class VonageApiClient:
         """Synchronous SMS credentials test for executor."""
         try:
             # Import here to avoid import errors during testing
-            from vonage import Vonage, Auth
+            from vonage import Vonage, Auth  # type: ignore[attr-defined]
             
             auth = Auth(api_key=self.api_key, api_secret=self.api_secret)
             client = Vonage(auth=auth)

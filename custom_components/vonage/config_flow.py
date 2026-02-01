@@ -34,7 +34,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema({
 })
 
 
-class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]  # type: ignore[call-arg]
     """Handle a config flow for Vonage."""
 
     VERSION = 1
