@@ -1,9 +1,10 @@
 # Vonage Home Assistant Integration
 
-[![hacs][hacs-shield]][hacs-url]
-[![GitHub Release][release-shield]][release-url]
-[![GitHub Activity][commits-shield]][commits-url]
+[![HACS Default][hacs-shield]][hacs-url]
+[![Version][version-shield]][releases-url]
+[![Home Assistant][ha-shield]][ha-url]
 [![License][license-shield]][license-url]
+[![Code Quality][quality-shield]][quality-url]
 
 Home Assistant integration for sending SMS notifications and making voice calls using the Vonage API.
 
@@ -95,8 +96,8 @@ If you configured Voice API credentials, use the `vonage.make_call` service:
 ```yaml
 service: vonage.make_call
 data:
-  target: "+14155550101"
-  message: "Fire alarm triggered. Please check your home immediately."
+  to: "+14155550101"
+  text: "Fire alarm triggered. Please check your home immediately."
   language: "en-US"  # Optional, uses default if not specified
   style: 1           # Optional, uses default if not specified
 ```
@@ -112,8 +113,8 @@ automation:
     action:
       service: vonage.make_call
       data:
-        target: "+14155550101"
-        message: >
+        to: "+14155550101"
+        text: >
           Emergency: Fire alarm activated in the {{ trigger.to_state.attributes.friendly_name }}.
           Please evacuate immediately and call 911.
         language: "en-US"
@@ -183,11 +184,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-[hacs-shield]: https://img.shields.io/badge/HACS-Custom-orange.svg
-[hacs-url]: https://github.com/hacs/integration
-[release-shield]: https://img.shields.io/github/v/release/attilaszasz/vonage-homeassistant
-[release-url]: https://github.com/attilaszasz/vonage-homeassistant/releases
-[commits-shield]: https://img.shields.io/github/commit-activity/y/attilaszasz/vonage-homeassistant
-[commits-url]: https://github.com/attilaszasz/vonage-homeassistant/graphs/commit-activity
-[license-shield]: https://img.shields.io/github/license/attilaszasz/vonage-homeassistant
+[hacs-shield]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacs-url]: https://hacs.xyz/
+[version-shield]: https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge
+[releases-url]: https://github.com/attilaszasz/vonage-homeassistant/releases
+[ha-shield]: https://img.shields.io/badge/Home%20Assistant-2024.1+-41BDF5.svg?style=for-the-badge
+[ha-url]: https://www.home-assistant.io/
+[license-shield]: https://img.shields.io/github/license/attilaszasz/vonage-homeassistant.svg?style=for-the-badge
 [license-url]: https://github.com/attilaszasz/vonage-homeassistant/blob/main/LICENSE
+[quality-shield]: https://img.shields.io/badge/code%20quality-A-green.svg?style=for-the-badge
+[quality-url]: https://github.com/attilaszasz/vonage-homeassistant
