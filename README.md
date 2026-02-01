@@ -4,7 +4,6 @@
 [![Version][version-shield]][releases-url]
 [![Home Assistant][ha-shield]][ha-url]
 [![License][license-shield]][license-url]
-[![Code Quality][quality-shield]][quality-url]
 
 Home Assistant integration for sending SMS notifications and making voice calls using the Vonage API.
 
@@ -192,5 +191,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [ha-url]: https://www.home-assistant.io/
 [license-shield]: https://img.shields.io/github/license/attilaszasz/vonage-homeassistant.svg?style=for-the-badge
 [license-url]: https://github.com/attilaszasz/vonage-homeassistant/blob/main/LICENSE
-[quality-shield]: https://img.shields.io/badge/code%20quality-A-green.svg?style=for-the-badge
-[quality-url]: https://github.com/attilaszasz/vonage-homeassistant
