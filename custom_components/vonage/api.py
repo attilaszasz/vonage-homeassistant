@@ -97,9 +97,9 @@ class VonageApiClient:
             client = Vonage(auth=auth)
             
             # Use the send method with message parameter as dict
-            # Based on Vonage SDK documentation
+            # Based on Vonage SDK documentation - use from_ since from is reserved keyword
             message_data = {
-                "from": self.phone_number,
+                "from_": self.phone_number,
                 "to": to,
                 "text": text
             }
@@ -161,8 +161,10 @@ class VonageApiClient:
             
             # Convert phone numbers for Voice API
             # Voice API requires numbers in format: CountryCode + Number (no + prefix, no leading zeros)
-            # Pattern: ^[1-9]\d{6,14}$ - must start with 1-9, 6-14 additional digits
+            # Pattern: ^[1-9]\\d{6,14}$ - must start with 1-9, 6-14 additional digits
+            _LOGGER.debug("Voice call - Input phone number: %s", to)
             to_number = self._format_phone_for_voice(to)
+            _LOGGER.debug("Voice call - Formatted phone number: %s", to_number)
             from_number = self._format_phone_for_voice(self.phone_number)
             
             response = client.voice.create_call({  # type: ignore[arg-type]
