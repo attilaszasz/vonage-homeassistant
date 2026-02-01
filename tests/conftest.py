@@ -1,6 +1,13 @@
 """Test fixtures for Vonage integration."""
+import sys
+from pathlib import Path
 import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+# Add the project root to Python path so we can import custom_components
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
