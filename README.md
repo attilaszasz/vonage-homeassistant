@@ -173,6 +173,10 @@ Logs will show API requests/responses (credentials are never logged).
 
 Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
 
+## Author
+
+Created and maintained by **Attila Szasz**.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

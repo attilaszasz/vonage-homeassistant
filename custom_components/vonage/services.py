@@ -64,12 +64,16 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
             else:
                 style = 0  # Fallback
         
+        # Ensure we have valid values (should never be None at this point)
+        final_language: str = language if language is not None else "en-US"
+        final_style: int = style if style is not None else 0
+        
         try:
             response = await api_client.make_call(
                 to=target,
                 text=message,
-                language=language,
-                style=style
+                language=final_language,
+                style=final_style
             )
             _LOGGER.info(
                 "Voice call initiated successfully. Call UUID: %s, Status: %s",

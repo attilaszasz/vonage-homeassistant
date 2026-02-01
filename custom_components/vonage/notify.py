@@ -20,7 +20,7 @@ async def async_get_service(
     hass: HomeAssistant,
     config: ConfigType,
     discovery_info: Optional[DiscoveryInfoType] = None,
-) -> Optional[VonageSmsNotificationService]:
+) -> Optional["VonageSmsNotificationService"]:
     """Get the Vonage SMS notification service."""
     if discovery_info is None:
         return None

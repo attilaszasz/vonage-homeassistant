@@ -1,4 +1,7 @@
-"""Vonage API client wrapper for Home Assistant integration."""
+"""Vonage API client wrapper for Home Assistant integration.
+
+Author: Attila Szasz
+"""
 from dataclasses import dataclass
 from typing import Optional
 import logging

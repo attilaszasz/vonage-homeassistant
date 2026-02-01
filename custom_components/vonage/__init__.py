@@ -1,4 +1,7 @@
-"""The Vonage integration."""
+"""The Vonage integration.
+
+Author: Attila Szasz
+"""
 import logging
 
 from homeassistant.config_entries import ConfigEntry

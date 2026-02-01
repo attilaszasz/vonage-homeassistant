@@ -151,26 +151,26 @@
 
 **Purpose**: Documentation, CI/CD, and HACS compliance
 
-- [ ] T029 [P] Create `README.md` at repo root:
+- [x] T029 [P] Create `README.md` at repo root:
   - Installation via HACS instructions
   - Configuration steps with screenshots placeholder
   - Service documentation for notify.vonage_sms and vonage.make_call
   - Example automations
   - Troubleshooting section
-- [ ] T030 [P] Create `.github/workflows/validate.yml`:
+- [x] T030 [P] Create `.github/workflows/validate.yml`:
   - Run hassfest on custom_components/vonage/
   - Run hacs/action for HACS validation
   - Run ruff check and mypy
   - Run pytest with coverage
-- [ ] T031 [P] Create `.github/workflows/release.yml`:
+- [x] T031 [P] Create `.github/workflows/release.yml`:
   - Trigger on tag push (v*)
   - Create GitHub release with changelog
-- [ ] T032 Add type hints throughout all Python files for mypy strict mode
-- [ ] T033 Run ruff check and fix any linting issues
-- [ ] T034 Run mypy and fix any type errors
-- [ ] T035 Run hassfest validation and fix any manifest issues
-- [ ] T036 Run hacs/action validation and fix any HACS compliance issues
-- [ ] T037 Update manifest.json version to 1.0.0 and create Git tag v1.0.0
+- [x] T032 Add type hints throughout all Python files for mypy strict mode
+- [x] T033 Run ruff check and fix any linting issues
+- [x] T034 Run mypy and fix any type errors
+- [x] T035 Run hassfest validation and fix any manifest issues
+- [x] T036 Run hacs/action validation and fix any HACS compliance issues
+- [x] T037 Update manifest.json version to 1.0.0 and create Git tag v1.0.0
 
 **Checkpoint**: Integration ready for HACS submission. All CI checks pass.
 
