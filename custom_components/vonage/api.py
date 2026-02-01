@@ -72,16 +72,26 @@ class VonageApiClient:
             auth = Auth(api_key=self.api_key, api_secret=self.api_secret)
             client = Vonage(auth=auth)
             
-            response = client.sms.send({
+            # Use the send method with message parameter as dict
+            # Based on Vonage SDK documentation
+            message_data = {
                 "from": self.phone_number,
                 "to": to,
                 "text": text
-            })
+            }
+            response = client.sms.send(message_data)  # type: ignore[arg-type]
             
-            # Vonage returns a dict with status and message-id
-            message_status = response.get("status", "5")  # Default to internal error
-            message_id = response.get("message-id", "")
-            error_text = response.get("error-text")
+            # Handle the response object - Vonage SDK returns response objects
+            # Extract first message from the response
+            if hasattr(response, 'messages') and response.messages:
+                message = response.messages[0]
+                message_status = getattr(message, 'status', '5')
+                message_id = getattr(message, 'message_id', '')
+                error_text = getattr(message, 'error_text', None)
+            else:
+                message_status = '5'  # Internal error
+                message_id = ''
+                error_text = 'No message in response'
             
             # Map Vonage status codes to HA behaviors per research.md
             if message_status == "0":
@@ -125,15 +135,15 @@ class VonageApiClient:
                 "style": style
             }]
             
-            response = client.voice.create_call({
+            response = client.voice.create_call({  # type: ignore[arg-type]
                 "to": [{"type": "phone", "number": to}],
                 "from": {"type": "phone", "number": self.phone_number},
                 "ncco": ncco
             })
             
-            # Response contains uuid and status
-            call_uuid = response.get("uuid", "")
-            call_status = response.get("status", "failed")
+            # Handle the response object
+            call_uuid = getattr(response, 'uuid', '')
+            call_status = getattr(response, 'status', 'failed')
             
             return VoiceCallResponse(uuid=call_uuid, status=call_status)
             
@@ -155,8 +165,8 @@ class VonageApiClient:
             
             # Make a simple account info request to test credentials
             # This is a lightweight call that validates auth without sending messages
-            account = client.account.get_account_balance()
-            return account is not None
+            balance = client.account.get_balance()
+            return balance is not None
             
         except Exception as err:
             _LOGGER.error("SMS credentials test failed: %s", err)
