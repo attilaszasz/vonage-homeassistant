@@ -6,9 +6,9 @@ from homeassistant.components.notify import (
     ATTR_TARGET,
     BaseNotificationService,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .api import VonageApiClient
 from .const import DOMAIN
@@ -16,22 +16,21 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_get_service(
+async def async_setup_entry(
     hass: HomeAssistant,
-    config: ConfigType,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> Optional["VonageSmsNotificationService"]:
-    """Get the Vonage SMS notification service."""
-    if discovery_info is None:
-        return None
-
-    # Get the API client from the config entry data
-    api_client = discovery_info.get("api_client")
-    if api_client is None:
-        _LOGGER.error("No API client found in discovery info")
-        return None
-
-    return VonageSmsNotificationService(api_client)
+    config_entry: ConfigEntry,
+    async_add_entities,
+) -> None:
+    """Set up Vonage notify platform."""
+    api_client = hass.data[DOMAIN][config_entry.entry_id]
+    
+    # Register the notification service directly
+    notify_service = VonageSmsNotificationService(api_client)
+    
+    # Register with notify component
+    await hass.components.notify.async_register_services({
+        "vonage_sms": notify_service
+    })
 
 
 class VonageSmsNotificationService(BaseNotificationService):

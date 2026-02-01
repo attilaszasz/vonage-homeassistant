@@ -135,9 +135,18 @@ class VonageApiClient:
                 "style": style
             }]
             
+            # Normalize phone numbers for Voice API (replace + with 00 international prefix)
+            # User input should keep + for standard E.164 format  
+            to_number = to.replace('+', '00') if to.startswith('+') else to
+            from_number = self.phone_number.replace('+', '00') if self.phone_number.startswith('+') else self.phone_number
+            
+            # Ensure the number meets Voice API requirements
+            if not to_number or not to_number[0:2] == '00':
+                raise HomeAssistantError(f"Invalid phone number format: {to}. Must be in international format (+CountryCode).")
+            
             response = client.voice.create_call({  # type: ignore[arg-type]
-                "to": [{"type": "phone", "number": to}],
-                "from": {"type": "phone", "number": self.phone_number},
+                "to": [{"type": "phone", "number": to_number}],
+                "from": {"type": "phone", "number": from_number},
                 "ncco": ncco
             })
             
@@ -192,13 +201,18 @@ class VonageApiClient:
 
     def _test_voice_credentials_sync(self) -> bool:
         """Synchronous Voice credentials test for executor."""
+        # Import here to avoid import errors during testing
+        import jwt
+        import uuid
+        from datetime import datetime, timezone
+        
         try:
-            # Import here to avoid import errors during testing
-            import jwt
-            import uuid
-            from datetime import datetime, timezone
-            
             if not self.application_id or not self.private_key:
+                return False
+                
+            # Validate private key format first
+            if not self.private_key.strip().startswith('-----BEGIN'):
+                _LOGGER.error("Private key must be in PEM format")
                 return False
                 
             # Test by generating a JWT token with the provided credentials
@@ -206,13 +220,18 @@ class VonageApiClient:
             payload = {
                 "application_id": self.application_id,
                 "iat": int(datetime.now(timezone.utc).timestamp()),
+                "exp": int(datetime.now(timezone.utc).timestamp()) + 300,  # 5 minutes
                 "jti": str(uuid.uuid4()),
             }
             
             # If this doesn't raise an exception, credentials are valid
-            token = jwt.encode(payload, self.private_key, algorithm="RS256")
+            # Use the private key directly as PyJWT expects PEM format
+            token = jwt.encode(payload, self.private_key.strip(), algorithm="RS256")
             return token is not None and len(token) > 0
             
+        except jwt.InvalidKeyError as err:
+            _LOGGER.error("Invalid private key format: %s", err)
+            return False
         except Exception as err:
             _LOGGER.error("Voice credentials test failed: %s", err)
             return False
