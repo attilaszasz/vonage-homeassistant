@@ -9,6 +9,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: "Create GitHub Release"
+    permissions:
+      contents: write
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -48,43 +50,6 @@ jobs:
           fi
           echo "Version verified: $TAG_VERSION"
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Simple changelog generation - in production, consider using conventional commits
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "## Changes in v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release v${{ steps.version.outputs.version }}
-          body: |
-            ${{ steps.changelog.outputs.changelog }}
-            
-            ## Installation
-            
-            ### HACS
-            This release will be automatically available in HACS within a few hours.
-            
-            ### Manual Installation
-            1. Download the `vonage.zip` file below
-            2. Extract to `custom_components/vonage/` in your Home Assistant config
-            3. Restart Home Assistant
-            
-            ## Full Changelog
-            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          draft: false
-          prerelease: false
-
       - name: Create release archive
         run: |
           mkdir -p release
@@ -92,12 +57,41 @@ jobs:
           cd release
           zip -r ../vonage-${{ steps.version.outputs.version }}.zip .
 
-      - name: Upload release archive
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Simple changelog generation - in production, consider using conventional commits
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "## Changes in v${{ steps.version.outputs.version }}" > notes.md
+            echo "" >> notes.md
+            git log --pretty=format:"- %s" $PREV_TAG..HEAD >> notes.md
+          else
+            echo "## Initial Release v${{ steps.version.outputs.version }}" > notes.md
+            echo "" >> notes.md
+            echo "First release of the Vonage Home Assistant Integration." >> notes.md
+          fi
+          echo "" >> notes.md
+          echo "" >> notes.md
+          echo "## Installation" >> notes.md
+          echo "" >> notes.md
+          echo "### HACS" >> notes.md
+          echo "This release is available in HACS. Search for 'Vonage' in the Integrations section." >> notes.md
+          echo "" >> notes.md
+          echo "### Manual Installation" >> notes.md
+          echo "1. Download the \`vonage.zip\` file below" >> notes.md
+          echo "2. Extract to \`custom_components/vonage/\` in your Home Assistant config" >> notes.md
+          echo "3. Restart Home Assistant" >> notes.md
+          echo "" >> notes.md
+          echo "## Full Changelog" >> notes.md
+          echo "See [CHANGELOG.md](CHANGELOG.md) for detailed changes." >> notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./vonage-${{ steps.version.outputs.version }}.zip
-          asset_name: vonage.zip
-          asset_content_type: application/zip
+          name: Release v${{ steps.version.outputs.version }}
+          body_path: notes.md
+          draft: false
+          prerelease: false
+          files: |
+            vonage-${{ steps.version.outputs.version }}.zip
