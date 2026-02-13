@@ -20,15 +20,11 @@ Home Assistant integration for sending SMS notifications and making voice calls 
 ### HACS (Recommended)
 
 1. Open HACS in your Home Assistant instance
-2. Click the three dots menu in the top right corner
-3. Select "Custom repositories"
-4. Add this repository URL: `https://github.com/attilaszasz/vonage-homeassistant`
-5. Select category: "Integration"
-6. Click "Add"
-7. Click the "+" button to add integration
-8. Search for "Vonage"
-9.  Install the integration
-10. Restart Home Assistant
+2. Click on "Integrations"
+3. Click the "+" button in the bottom right corner
+4. Search for "Vonage"
+5. Click "Download" to install the integration
+6. Restart Home Assistant
 
 ### Manual Installation
 
@@ -187,7 +183,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-[hacs-shield]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacs-shield]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
 [hacs-url]: https://hacs.xyz/
 [version-shield]: https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge
 [releases-url]: https://github.com/attilaszasz/vonage-homeassistant/releases
