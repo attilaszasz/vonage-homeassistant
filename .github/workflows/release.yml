@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -31,7 +31,7 @@ jobs:
           # Lint check
           pip install ruff mypy
           ruff check custom_components/
-          mypy custom_components/ --ignore-missing-imports
+          mypy custom_components/
           
           # Test check
           pytest --cov=custom_components/vonage

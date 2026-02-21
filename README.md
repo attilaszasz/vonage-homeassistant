@@ -99,7 +99,10 @@ data:
   text: "Fire alarm triggered. Please check your home immediately."
   language: "en-US"  # Optional, uses default if not specified
   style: 1           # Optional, uses default if not specified
+  dtmf_answer: "p*123#"  # Optional, sends DTMF digits when the call is answered
 ```
+
+Use `dtmf_answer` when you need the call to navigate an IVR automatically (for example, pause then send `*123#`).
 
 **Example Automation**:
 ```yaml
@@ -118,6 +121,7 @@ automation:
           Please evacuate immediately and call 911.
         language: "en-US"
         style: 0
+        dtmf_answer: "p*123#"
 ```
 
 ## Supported Voice Languages

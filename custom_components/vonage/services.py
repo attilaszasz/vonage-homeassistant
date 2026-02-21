@@ -21,6 +21,8 @@ MAKE_CALL_SCHEMA = vol.Schema({
     vol.Optional("text"): cv.string,
     vol.Optional("language"): cv.string,
     vol.Optional("style"): vol.Coerce(int),
+    vol.Optional("dtmf_answer"): cv.string,
+    vol.Optional("dtmfAnswer"): cv.string,
 })
 
 
@@ -33,6 +35,9 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         text: str = call.data.get("text", "Hello from Home Assistant")
         language: Optional[str] = call.data.get("language")
         style: Optional[int] = call.data.get("style")
+        dtmf_answer: Optional[str] = call.data.get("dtmf_answer")
+        if dtmf_answer is None:
+            dtmf_answer = call.data.get("dtmfAnswer")
         
         # Check if Voice API is configured
         if not api_client.application_id or not api_client.private_key:
@@ -73,7 +78,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
                 to=to,
                 text=text,
                 language=final_language,
-                style=final_style
+                style=final_style,
+                dtmf_answer=dtmf_answer,
             )
             _LOGGER.info(
                 "Voice call initiated successfully. Call UUID: %s, Status: %s",

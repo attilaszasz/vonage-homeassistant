@@ -3,7 +3,7 @@
 Author: Attila Szasz
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 import logging
 
 from homeassistant.exceptions import HomeAssistantError, ConfigEntryAuthFailed
@@ -35,6 +35,7 @@ class VoiceCallRequest:
     from_number: str
     language: str = "en-US"
     style: int = 0
+    dtmf_answer: Optional[str] = None
 
 
 @dataclass
@@ -132,6 +133,8 @@ class VonageApiClient:
         except ImportError as err:
             _LOGGER.error("Vonage SDK not available: %s", err)
             raise HomeAssistantError("Vonage SDK not installed")
+        except (ConfigEntryAuthFailed, HomeAssistantError):
+            raise
         except Exception as err:
             _LOGGER.error("Failed to send SMS: %s", err)
             raise HomeAssistantError(f"Failed to send SMS: {err}")
@@ -142,7 +145,14 @@ class VonageApiClient:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self._send_sms_sync, to, text)
 
-    def _make_call_sync(self, to: str, text: str, language: str = "en-US", style: int = 0) -> VoiceCallResponse:
+    def _make_call_sync(
+        self,
+        to: str,
+        text: str,
+        language: str = "en-US",
+        style: int = 0,
+        dtmf_answer: Optional[str] = None,
+    ) -> VoiceCallResponse:
         """Synchronous make call for executor."""
         try:
             # Import here to avoid import errors during testing
@@ -169,13 +179,25 @@ class VonageApiClient:
             
             # Create call with proper from_ parameter structure
             # Try alternative parameter names in case SDK expects 'from' at root level
-            call_data = {
-                "to": [{"type": "phone", "number": to_number}],
+            to_endpoint: dict[str, Any] = {"type": "phone", "number": to_number}
+            if dtmf_answer:
+                to_endpoint["dtmfAnswer"] = dtmf_answer
+
+            call_data: dict[str, Any] = {
+                "to": [to_endpoint],
                 "from": {"type": "phone", "number": from_number},
                 "ncco": ncco
             }
-            
-            _LOGGER.debug("Voice call data: %s", call_data)
+
+            log_data: dict[str, Any] = {
+                "to": [dict(to_endpoint)],
+                "from": call_data["from"],
+                "ncco": call_data["ncco"],
+            }
+            if "dtmfAnswer" in log_data["to"][0]:
+                log_data["to"][0]["dtmfAnswer"] = "***"
+
+            _LOGGER.debug("Voice call data: %s", log_data)
             try:
                 response = client.voice.create_call(call_data)  # type: ignore[arg-type]
             except Exception as e:
@@ -201,7 +223,12 @@ class VonageApiClient:
             raise HomeAssistantError(f"Failed to make call: {err}")
 
     async def make_call(
-        self, to: str, text: str, language: str = "en-US", style: int = 0
+        self,
+        to: str,
+        text: str,
+        language: str = "en-US",
+        style: int = 0,
+        dtmf_answer: Optional[str] = None,
     ) -> VoiceCallResponse:
         """Make voice call with TTS."""
         # Check if Voice credentials are configured
@@ -210,7 +237,15 @@ class VonageApiClient:
         
         import asyncio
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._make_call_sync, to, text, language, style)
+        return await loop.run_in_executor(
+            None,
+            self._make_call_sync,
+            to,
+            text,
+            language,
+            style,
+            dtmf_answer,
+        )
 
     def _test_sms_credentials_sync(self) -> bool:
         """Synchronous SMS credentials test for executor."""
