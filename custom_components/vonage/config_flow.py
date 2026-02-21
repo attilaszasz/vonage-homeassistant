@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import ConfigFlowResult
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -34,7 +34,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema({
 })
 
 
-class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]  # type: ignore[call-arg]
+class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Vonage."""
 
     VERSION = 1
@@ -42,7 +42,7 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors = {}
         
