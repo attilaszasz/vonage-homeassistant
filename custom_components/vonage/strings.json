@@ -34,7 +34,7 @@
           "name": "Text",
           "description": "Text to be spoken during the call"
         },
-        "dtmfAnswer": {
+        "dtmf_answer": {
           "name": "DTMF Answer",
           "description": "Send DTMF machine digits when the call is answered (e.g., p*123#)"
         }

@@ -18,7 +18,7 @@ make_call:
       selector:
         text:
           multiline: true
-    dtmfAnswer:
+    dtmf_answer:
       name: DTMF Answer
       description: Send DTMF machine digits when the call is answered (e.g., p*123#)
       required: false
