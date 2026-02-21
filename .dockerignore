@@ -1,0 +1,37 @@
+# Git and VCS
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Build and test artifacts
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.tox/
+.coverage
+coverage/
+
+# Environment and logs
+.env*
+*.log*
+
+# Editor and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile*
+.dockerignore
+
+# Dependencies
+node_modules/

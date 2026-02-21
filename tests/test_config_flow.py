@@ -1,12 +1,11 @@
 """Test the Vonage config flow."""
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.vonage.const import DOMAIN
-from custom_components.vonage.config_flow import VonageConfigFlow
 
 
 class TestVonageConfigFlow:

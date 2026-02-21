@@ -23,29 +23,29 @@
 
 ### Data Model (FR-007)
 
-- [ ] T001 [US1] Add `dtmf_answer: Optional[str] = None` field to `VoiceCallRequest` dataclass in `custom_components/vonage/api.py`
+- [x] T001 [US1] Add `dtmf_answer: Optional[str] = None` field to `VoiceCallRequest` dataclass in `custom_components/vonage/api.py`
 
 ### API Layer (FR-002, FR-003, FR-006, FR-010)
 
-- [ ] T002 [US1] Update `_make_call_sync()` signature to accept `dtmf_answer: Optional[str] = None` in `custom_components/vonage/api.py`
-- [ ] T003 [US1] Update `_make_call_sync()` payload construction to conditionally include `dtmfAnswer` in the `to[0]` phone endpoint object when `dtmf_answer` is provided and non-empty in `custom_components/vonage/api.py`
-- [ ] T004 [US1] Add debug log redaction for `dtmfAnswer` — log `"***"` instead of actual value in `custom_components/vonage/api.py`
-- [ ] T005 [US1] Update `make_call()` async method signature to accept and pass through `dtmf_answer: Optional[str] = None` in `custom_components/vonage/api.py`
+- [x] T002 [US1] Update `_make_call_sync()` signature to accept `dtmf_answer: Optional[str] = None` in `custom_components/vonage/api.py`
+- [x] T003 [US1] Update `_make_call_sync()` payload construction to conditionally include `dtmfAnswer` in the `to[0]` phone endpoint object when `dtmf_answer` is provided and non-empty in `custom_components/vonage/api.py`
+- [x] T004 [US1] Add debug log redaction for `dtmfAnswer` — log `"***"` instead of actual value in `custom_components/vonage/api.py`
+- [x] T005 [US1] Update `make_call()` async method signature to accept and pass through `dtmf_answer: Optional[str] = None` in `custom_components/vonage/api.py`
 
 ### Service Layer (FR-001, FR-004, FR-005)
 
-- [ ] T006 [US1] Add `vol.Optional("dtmfAnswer"): cv.string` to `MAKE_CALL_SCHEMA` in `custom_components/vonage/services.py`
-- [ ] T007 [US1] Extract `dtmf_answer = call.data.get("dtmfAnswer")` in `async_handle_make_call()` and pass to `api_client.make_call()` in `custom_components/vonage/services.py`
-- [ ] T008 [P] [US1] Add `dtmfAnswer` field metadata (name, description, selector) to `make_call` service in `custom_components/vonage/services.yaml`
-- [ ] T008b [P] [US1] Add `dtmfAnswer` field name and description to `services.make_call.fields` in `custom_components/vonage/strings.json` and `custom_components/vonage/translations/en.json` (Constitution I — i18n requirement)
+- [x] T006 [US1] Add `vol.Optional("dtmfAnswer"): cv.string` to `MAKE_CALL_SCHEMA` in `custom_components/vonage/services.py`
+- [x] T007 [US1] Extract `dtmf_answer = call.data.get("dtmfAnswer")` in `async_handle_make_call()` and pass to `api_client.make_call()` in `custom_components/vonage/services.py`
+- [x] T008 [P] [US1] Add `dtmfAnswer` field metadata (name, description, selector) to `make_call` service in `custom_components/vonage/services.yaml`
+- [x] T008b [P] [US1] Add `dtmfAnswer` field name and description to `services.make_call.fields` in `custom_components/vonage/strings.json` and `custom_components/vonage/translations/en.json` (Constitution I — i18n requirement)
 
 ### Tests (SC-004)
 
-- [ ] T009 [P] [US1] Add test for `make_call` with `dtmf_answer` — verify `dtmfAnswer` appears in `to[0]` endpoint of `create_call` payload in `tests/test_api.py`
-- [ ] T010 [P] [US1] Add test for `make_call` without `dtmf_answer` — verify `to[0]` endpoint has no `dtmfAnswer` key in `tests/test_api.py`
-- [ ] T011 [P] [US1] Add test for `make_call` with empty string `dtmf_answer` — verify `to[0]` endpoint has no `dtmfAnswer` key in `tests/test_api.py`
-- [ ] T012 [P] [US1] Add test for service call with `dtmfAnswer` — verify it is passed through to `api_client.make_call()` in `tests/test_services.py`
-- [ ] T013 [P] [US1] Add test for service call without `dtmfAnswer` — verify existing behavior unchanged in `tests/test_services.py`
+- [x] T009 [P] [US1] Add test for `make_call` with `dtmf_answer` — verify `dtmfAnswer` appears in `to[0]` endpoint of `create_call` payload in `tests/test_api.py`
+- [x] T010 [P] [US1] Add test for `make_call` without `dtmf_answer` — verify `to[0]` endpoint has no `dtmfAnswer` key in `tests/test_api.py`
+- [x] T011 [P] [US1] Add test for `make_call` with empty string `dtmf_answer` — verify `to[0]` endpoint has no `dtmfAnswer` key in `tests/test_api.py`
+- [x] T012 [P] [US1] Add test for service call with `dtmfAnswer` — verify it is passed through to `api_client.make_call()` in `tests/test_services.py`
+- [x] T013 [P] [US1] Add test for service call without `dtmfAnswer` — verify existing behavior unchanged in `tests/test_services.py`
 
 **Checkpoint**: At this point, the DTMF feature should be fully functional. Run `pytest` to verify all existing and new tests pass.
 
@@ -55,9 +55,9 @@
 
 **Purpose**: Documentation and spec updates
 
-- [ ] T014 [P] Update Voice Calls section in `README.md` with `dtmfAnswer` parameter description and practical YAML example (e.g., `dtmfAnswer: "p*123#"`)
-- [ ] T015 [P] Run `ruff check .` and `mypy custom_components/` to verify lint and type-check pass
-- [ ] T016 Run quickstart.md and contracts validation — manually verify service call examples from `specs/002-dtmf-support/quickstart.md` and schema in `specs/002-dtmf-support/contracts/services.md` match the implementation
+- [x] T014 [P] Update Voice Calls section in `README.md` with `dtmfAnswer` parameter description and practical YAML example (e.g., `dtmfAnswer: "p*123#"`)
+- [x] T015 [P] Run `ruff check .` and `mypy custom_components/` to verify lint and type-check pass
+- [x] T016 Run quickstart.md and contracts validation — manually verify service call examples from `specs/002-dtmf-support/quickstart.md` and schema in `specs/002-dtmf-support/contracts/services.md` match the implementation
 
 ---
 

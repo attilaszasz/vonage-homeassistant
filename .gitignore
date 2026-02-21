@@ -23,6 +23,7 @@ MANIFEST
 
 # Virtual environments
 .env
+.env*
 .venv
 env/
 venv/
@@ -45,6 +46,7 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.tmp
 
 # Testing
 .coverage

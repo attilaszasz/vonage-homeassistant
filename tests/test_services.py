@@ -2,7 +2,6 @@
 import pytest
 from unittest.mock import AsyncMock, Mock
 
-from homeassistant.core import ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.vonage.api import VonageApiClient, VoiceCallResponse
@@ -50,8 +49,8 @@ class TestVonageServices:
             DOMAIN,
             SERVICE_MAKE_CALL,
             {
-                "target": "+14155550101",
-                "message": "Test voice message",
+                "to": "+14155550101",
+                "text": "Test voice message",
                 "language": "en-US",
                 "style": 0
             },
@@ -63,7 +62,8 @@ class TestVonageServices:
             to="+14155550101",
             text="Test voice message",
             language="en-US",
-            style=0
+            style=0,
+            dtmf_answer=None,
         )
 
     async def test_make_call_with_defaults(self, hass):
@@ -88,8 +88,8 @@ class TestVonageServices:
             DOMAIN,
             SERVICE_MAKE_CALL,
             {
-                "target": "+14155550101",
-                "message": "Mensaje de prueba"
+                "to": "+14155550101",
+                "text": "Mensaje de prueba"
             },
             blocking=True
         )
@@ -99,7 +99,8 @@ class TestVonageServices:
             to="+14155550101",
             text="Mensaje de prueba",
             language="es-ES",
-            style=2
+            style=2,
+            dtmf_answer=None,
         )
 
     async def test_make_call_voice_not_configured(self, hass):
@@ -117,8 +118,8 @@ class TestVonageServices:
                 DOMAIN,
                 SERVICE_MAKE_CALL,
                 {
-                    "target": "+14155550101",
-                    "message": "Test message"
+                    "to": "+14155550101",
+                    "text": "Test message"
                 },
                 blocking=True
             )
@@ -147,8 +148,8 @@ class TestVonageServices:
                 DOMAIN,
                 SERVICE_MAKE_CALL,
                 {
-                    "target": "+14155550101",
-                    "message": "Test message"
+                    "to": "+14155550101",
+                    "text": "Test message"
                 },
                 blocking=True
             )
@@ -178,8 +179,8 @@ class TestVonageServices:
             DOMAIN,
             SERVICE_MAKE_CALL,
             {
-                "target": "+14155550101",
-                "message": "Bonjour, ceci est un test",
+                "to": "+14155550101",
+                "text": "Bonjour, ceci est un test",
                 "language": "fr-FR",  # Override default
                 "style": 1  # Override default
             },
@@ -191,5 +192,71 @@ class TestVonageServices:
             to="+14155550101",
             text="Bonjour, ceci est un test",
             language="fr-FR",
-            style=1
+            style=1,
+            dtmf_answer=None,
+        )
+
+    async def test_make_call_with_dtmf_answer(self, hass):
+        """Test make_call service passes dtmfAnswer to API client."""
+        self.api_client.make_call.return_value = VoiceCallResponse(
+            uuid="aaaaaaaa-bbbb-cccc-dddd-000000000000",
+            status="started"
+        )
+
+        await async_setup_services(hass, self.api_client)
+        hass.data[DOMAIN] = {"test_entry": self.api_client}
+
+        mock_entry = Mock()
+        mock_entry.data = {"default_language": "en-US", "default_voice_style": 0}
+        hass.config_entries.async_get_entry = Mock(return_value=mock_entry)
+
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_MAKE_CALL,
+            {
+                "to": "+14155550101",
+                "text": "Test voice message",
+                "dtmfAnswer": "p*123#",
+            },
+            blocking=True,
+        )
+
+        self.api_client.make_call.assert_called_once_with(
+            to="+14155550101",
+            text="Test voice message",
+            language="en-US",
+            style=0,
+            dtmf_answer="p*123#",
+        )
+
+    async def test_make_call_without_dtmf_answer(self, hass):
+        """Test make_call service sends None dtmf_answer when omitted."""
+        self.api_client.make_call.return_value = VoiceCallResponse(
+            uuid="aaaaaaaa-bbbb-cccc-dddd-000000000000",
+            status="started"
+        )
+
+        await async_setup_services(hass, self.api_client)
+        hass.data[DOMAIN] = {"test_entry": self.api_client}
+
+        mock_entry = Mock()
+        mock_entry.data = {"default_language": "en-US", "default_voice_style": 0}
+        hass.config_entries.async_get_entry = Mock(return_value=mock_entry)
+
+        await hass.services.async_call(
+            DOMAIN,
+            SERVICE_MAKE_CALL,
+            {
+                "to": "+14155550101",
+                "text": "Test voice message",
+            },
+            blocking=True,
+        )
+
+        self.api_client.make_call.assert_called_once_with(
+            to="+14155550101",
+            text="Test voice message",
+            language="en-US",
+            style=0,
+            dtmf_answer=None,
         )

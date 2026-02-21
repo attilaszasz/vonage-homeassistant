@@ -39,7 +39,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -51,14 +51,14 @@ jobs:
         run: ruff check custom_components/
 
       - name: Type check with mypy
-        run: mypy custom_components/ --ignore-missing-imports
+        run: mypy custom_components/
 
   test:
     runs-on: ubuntu-latest
     name: "Run tests"
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -79,7 +79,7 @@ jobs:
           pytest --cov=custom_components/vonage --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage.xml
           flags: unittests

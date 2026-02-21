@@ -1,5 +1,4 @@
 """Test the complete Vonage integration setup."""
-import pytest
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.setup import async_setup_component
@@ -144,8 +143,8 @@ async def test_vonage_voice_service_call(hass):
             DOMAIN,
             SERVICE_MAKE_CALL,
             {
-                "target": "+14155550101",
-                "message": "Test voice message from Home Assistant",
+                "to": "+14155550101",
+                "text": "Test voice message from Home Assistant",
                 "language": "en-GB",
                 "style": 1
             },
@@ -157,5 +156,6 @@ async def test_vonage_voice_service_call(hass):
             to="+14155550101",
             text="Test voice message from Home Assistant",
             language="en-GB",
-            style=1
+            style=1,
+            dtmf_answer=None,
         )
