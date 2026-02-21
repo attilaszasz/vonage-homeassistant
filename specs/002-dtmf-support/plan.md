@@ -17,7 +17,7 @@ Add an optional `dtmfAnswer` parameter to the `vonage.make_call` service, allowi
 **Project Type**: Single (HA custom component)  
 **Performance Goals**: N/A (fire-and-forget service call; no latency/throughput concerns)  
 **Constraints**: Vonage API 2 MB item limit (irrelevant at DTMF string scale); no config flow changes  
-**Scale/Scope**: 4 source files modified, 2 spec files created/updated, 1 doc file updated; ~30 lines of new code + ~60 lines of new tests
+**Scale/Scope**: 3 source files + 2 i18n files + 2 test files modified, 1 doc file updated; ~30 lines of new code + ~60 lines of new tests
 
 ## Constitution Check
 
@@ -56,7 +56,10 @@ specs/002-dtmf-support/
 custom_components/vonage/
 ├── api.py               # Add dtmf_answer to VoiceCallRequest, _make_call_sync, make_call
 ├── services.py          # Add dtmfAnswer to MAKE_CALL_SCHEMA, extract & pass in handler
-└── services.yaml        # Add dtmfAnswer field metadata for HA UI
+├── services.yaml        # Add dtmfAnswer field metadata for HA UI
+├── strings.json         # Add dtmfAnswer i18n strings (Constitution I)
+└── translations/
+    └── en.json           # Add dtmfAnswer i18n strings (Constitution I)
 
 tests/
 ├── test_api.py          # New tests: make_call with/without dtmf_answer
