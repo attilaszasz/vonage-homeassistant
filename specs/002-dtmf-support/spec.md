@@ -36,8 +36,8 @@ As a Home Assistant user, I want to include DTMF digits (e.g., `p*123#`) in my `
 ### Functional Requirements
 
 - **FR-001**: The `vonage.make_call` service MUST accept an optional `dtmfAnswer` parameter as a text string
-- **FR-002**: When `dtmfAnswer` is provided and non-empty, the integration MUST include it as a top-level field in the Vonage Voice API `create_call` request payload
-- **FR-003**: When `dtmfAnswer` is omitted or empty, the integration MUST NOT include a `dtmfAnswer` field in the API payload (preserving existing behavior)
+- **FR-002**: When `dtmfAnswer` is provided and non-empty, the integration MUST include it in the `to[0]` phone endpoint object of the Vonage Voice API `create_call` request payload (alongside `type` and `number`)
+- **FR-003**: When `dtmfAnswer` is omitted or empty, the integration MUST NOT include a `dtmfAnswer` field in the phone endpoint object (preserving existing behavior)
 - **FR-004**: The `dtmfAnswer` parameter MUST be a per-action (per-service-call) option, not a global integration setting
 - **FR-005**: The service definition MUST describe the `dtmfAnswer` field with appropriate metadata (name, description, selector) for the Home Assistant UI
 - **FR-006**: The integration MUST pass through any Vonage API errors related to invalid DTMF strings as user-facing error messages
@@ -63,7 +63,7 @@ As a Home Assistant user, I want to include DTMF digits (e.g., `p*123#`) in my `
 
 ## Assumptions
 
-- The Vonage Voice API `create_call` endpoint supports `dtmfAnswer` as a top-level field in the request payload (confirmed per Vonage documentation)
+- The Vonage Voice API `create_call` endpoint supports `dtmfAnswer` as a field inside the `to[0]` phone endpoint object (confirmed per Vonage API reference and NCCO reference; see [research.md](research.md))
 - Valid DTMF strings consist of digits `0-9`, `*`, `#`, and `p` (pause); validation is delegated to the Vonage API
 - The existing Voice API authentication (Application ID + private key) is sufficient — no additional credentials or permissions are needed for DTMF
 - This feature does not require any changes to the config flow or integration setup
