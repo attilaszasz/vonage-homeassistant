@@ -177,37 +177,31 @@ class VonageApiClient:
             _LOGGER.debug("Voice call - Formatted phone number: %s", to_number)
             from_number = self._format_phone_for_voice(self.phone_number)
             
-            # Create call with proper from_ parameter structure
-            # Try alternative parameter names in case SDK expects 'from' at root level
+            # Build endpoint dicts using Pydantic field names (not serialization aliases).
+            # The Vonage SDK's @validate_call coerces dicts into Pydantic models using
+            # Python field names. serialization_alias only affects output, not input.
+            # e.g. ToPhone.dtmf_answer -> serialized as "dtmfAnswer" in the HTTP request
+            #      CreateCallRequest.from_ -> serialized as "from" in the HTTP request
             to_endpoint: dict[str, Any] = {"type": "phone", "number": to_number}
             if dtmf_answer:
-                to_endpoint["dtmfAnswer"] = dtmf_answer
+                to_endpoint["dtmf_answer"] = dtmf_answer
 
             call_data: dict[str, Any] = {
                 "to": [to_endpoint],
-                "from": {"type": "phone", "number": from_number},
+                "from_": {"type": "phone", "number": from_number},
                 "ncco": ncco
             }
 
             log_data: dict[str, Any] = {
                 "to": [dict(to_endpoint)],
-                "from": call_data["from"],
+                "from_": call_data["from_"],
                 "ncco": call_data["ncco"],
             }
-            if "dtmfAnswer" in log_data["to"][0]:
-                log_data["to"][0]["dtmfAnswer"] = "***"
+            if "dtmf_answer" in log_data["to"][0]:
+                log_data["to"][0]["dtmf_answer"] = "***"
 
             _LOGGER.debug("Voice call data: %s", log_data)
-            try:
-                response = client.voice.create_call(call_data)  # type: ignore[arg-type]
-            except Exception as e:
-                # If 'from' fails, try 'from_'
-                if "from_" in str(e):
-                    call_data["from_"] = call_data.pop("from")
-                    _LOGGER.debug("Retrying with from_: %s", call_data)
-                    response = client.voice.create_call(call_data)  # type: ignore[arg-type]
-                else:
-                    raise
+            response = client.voice.create_call(call_data)  # type: ignore[arg-type]
             
             # Handle the response object
             call_uuid = getattr(response, 'uuid', '')

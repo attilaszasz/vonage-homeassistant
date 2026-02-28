@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-02-28
+
+### Fixed
+- **DTMF tones not sent during voice calls**: The Vonage Python SDK v4.x uses Pydantic
+  `@validate_call` which coerces dicts into models using Python field names, not
+  serialization aliases. The `dtmfAnswer` key was silently dropped because the SDK model
+  expects `dtmf_answer` as the input key (serialized to `dtmfAnswer` in the HTTP request).
+  Same fix applied to the `from`/`from_` field, removing an unreliable retry fallback.
+
 ## [1.0.0] - 2026-02-01
 
 ### Added

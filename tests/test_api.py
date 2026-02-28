@@ -100,7 +100,7 @@ class TestVonageApiClient:
         )
         expected_call_data = {
             "to": [{"type": "phone", "number": "14155550101"}],
-            "from": {"type": "phone", "number": "14155550100"},
+            "from_": {"type": "phone", "number": "14155550100"},
             "ncco": [{
                 "action": "talk",
                 "text": "Test message",
@@ -137,10 +137,10 @@ class TestVonageApiClient:
             self.client._make_call_sync("+14155550101", "Test message", "en-US", 0, "p*123#")
 
         call_payload = fake_client.voice.create_call.call_args.args[0]
-        assert call_payload["to"][0]["dtmfAnswer"] == "p*123#"
+        assert call_payload["to"][0]["dtmf_answer"] == "p*123#"
 
     def test_make_call_sync_omits_dtmf_answer_when_not_provided(self):
-        """Test dtmfAnswer is omitted from to endpoint when absent."""
+        """Test dtmf_answer is omitted from to endpoint when absent."""
         fake_response = Mock()
         fake_response.uuid = "aaaaaaaa-bbbb-cccc-dddd-000000000000"
         fake_response.status = "started"
@@ -155,10 +155,10 @@ class TestVonageApiClient:
             self.client._make_call_sync("+14155550101", "Test message", "en-US", 0)
 
         call_payload = fake_client.voice.create_call.call_args.args[0]
-        assert "dtmfAnswer" not in call_payload["to"][0]
+        assert "dtmf_answer" not in call_payload["to"][0]
 
     def test_make_call_sync_omits_dtmf_answer_when_empty_string(self):
-        """Test dtmfAnswer is omitted from to endpoint when empty."""
+        """Test dtmf_answer is omitted from to endpoint when empty."""
         fake_response = Mock()
         fake_response.uuid = "aaaaaaaa-bbbb-cccc-dddd-000000000000"
         fake_response.status = "started"
@@ -173,4 +173,4 @@ class TestVonageApiClient:
             self.client._make_call_sync("+14155550101", "Test message", "en-US", 0, "")
 
         call_payload = fake_client.voice.create_call.call_args.args[0]
-        assert "dtmfAnswer" not in call_payload["to"][0]
+        assert "dtmf_answer" not in call_payload["to"][0]
