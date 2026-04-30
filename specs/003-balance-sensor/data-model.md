@@ -64,7 +64,7 @@ A `DataUpdateCoordinator[AccountBalance]` (`coordinator.data` is `AccountBalance
 |---|---|
 | Platform | `sensor` |
 | `_attr_has_entity_name` | `True` |
-| `_attr_translation_key` | `"account_balance"` |
+| `_attr_translation_key` | `"account_balance"` (translation string is `"Account Balance"`; HA prepends device name `"Vonage"` → displayed friendly name `"Vonage Account Balance"`, entity ID `sensor.vonage_account_balance` per Spec FR-001) |
 | `_attr_unique_id` | `f"{config_entry.entry_id}_account_balance"` |
 | `_attr_device_class` | `SensorDeviceClass.MONETARY` |
 | `_attr_state_class` | `SensorStateClass.TOTAL` |
