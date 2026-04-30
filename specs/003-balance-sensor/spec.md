@@ -1,8 +1,8 @@
 # Feature Specification: Vonage Account Balance Sensor
 
-**Feature Branch**: `003-balance-sensor`  
-**Created**: 2026-04-30  
-**Status**: Draft  
+**Feature Branch**: `003-balance-sensor`
+**Created**: 2026-04-30
+**Status**: Draft
 **Input**: User description: "Add a Vonage account balance sensor — exposes current account balance from the Vonage API as a Home Assistant sensor entity (`sensor.vonage_account_balance`) with currency unit, monetary device class, total state class, polling via DataUpdateCoordinator, and proper error handling for auth failures and transient errors."
 
 ## Clarifications
