@@ -20,12 +20,12 @@ def _balance(value: float = 12.345) -> AccountBalance:
 
 
 async def test_balance_coordinator_first_refresh_success(hass):
-    """First refresh populates `coordinator.data` and `last_update_success`."""
+    """Refresh populates `coordinator.data` and `last_update_success`."""
     api_client = AsyncMock()
     api_client.async_get_balance = AsyncMock(return_value=_balance())
 
     coordinator = VonageBalanceCoordinator(hass, api_client)
-    await coordinator.async_config_entry_first_refresh()
+    await coordinator.async_refresh()
 
     assert coordinator.last_update_success is True
     assert coordinator.data is not None
