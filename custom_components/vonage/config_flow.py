@@ -43,6 +43,8 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_PUSH
 
+    _vonage_reauth_entry_id: str | None = None
+
     async def _async_validate_user_input(
         self, user_input: Dict[str, Any]
     ) -> dict[str, str]:
@@ -100,7 +102,7 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         self, entry_data: Dict[str, Any]
     ) -> ConfigFlowResult:
         """Trigger re-authentication flow when credentials become invalid."""
-        self._reauth_entry_id = self.context.get("entry_id")
+        self._vonage_reauth_entry_id = self.context.get("entry_id")
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
@@ -125,7 +127,7 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 errors=errors,
             )
 
-        entry_id = getattr(self, "_reauth_entry_id", None) or self.context.get("entry_id")
+        entry_id = self._vonage_reauth_entry_id or self.context.get("entry_id")
         if entry_id is None:
             return self.async_abort(reason="reauth_failed")
 
