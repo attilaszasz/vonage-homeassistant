@@ -49,8 +49,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         if language is None:
             # Get default from config entry stored in hass.data
             # Find the config entry for this API client
-            for entry_id, client in hass.data.get(DOMAIN, {}).items():
-                if client == api_client:
+            for entry_id, entry_data in hass.data.get(DOMAIN, {}).items():
+                if entry_data.get("api_client") == api_client:
                     config_entry = hass.config_entries.async_get_entry(entry_id)
                     if config_entry:
                         language = config_entry.data.get("default_language", "en-US")
@@ -60,8 +60,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         
         if style is None:
             # Get default from config entry
-            for entry_id, client in hass.data.get(DOMAIN, {}).items():
-                if client == api_client:
+            for entry_id, entry_data in hass.data.get(DOMAIN, {}).items():
+                if entry_data.get("api_client") == api_client:
                     config_entry = hass.config_entries.async_get_entry(entry_id)
                     if config_entry:
                         style = config_entry.data.get("default_voice_style", 0)

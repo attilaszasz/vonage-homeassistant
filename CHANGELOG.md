@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Account balance sensor**: `sensor.vonage_account_balance` per config entry,
+  polled every 15 minutes. `device_class: monetary`, `state_class: total`, unit
+  of measurement = account currency. Attributes: `last_updated` (ISO-8601) and
+  optional `auto_reload`. First-fetch failures raise `ConfigEntryNotReady`;
+  HTTP 401 triggers re-authentication; transient failures mark the sensor
+  unavailable and recover automatically on the next successful poll.
+
 ## [1.0.3] - 2026-02-28
 
 ### Fixed

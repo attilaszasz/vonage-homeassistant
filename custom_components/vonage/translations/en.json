@@ -40,5 +40,12 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "account_balance": {
+        "name": "Account Balance"
+      }
+    }
   }
 }

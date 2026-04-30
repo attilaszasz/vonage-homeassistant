@@ -1,11 +1,18 @@
 """Test for Vonage API client."""
 import pytest
 import types
+from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
 from homeassistant.exceptions import HomeAssistantError, ConfigEntryAuthFailed
 
-from custom_components.vonage.api import VonageApiClient, SmsResponse, VoiceCallResponse
+from custom_components.vonage.api import (
+    AccountBalance,
+    SmsResponse,
+    VoiceCallResponse,
+    VonageApiClient,
+    VonageBalanceError,
+)
 
 
 class TestVonageApiClient:
@@ -174,3 +181,153 @@ class TestVonageApiClient:
 
         call_payload = fake_client.voice.create_call.call_args.args[0]
         assert "dtmf_answer" not in call_payload["to"][0]
+
+
+def _make_vonage_module(get_balance=None, raise_exc=None):
+    """Build a fake `vonage` module exposing Vonage/Auth.
+
+    `get_balance` is the value returned by `client.account.get_balance()`.
+    `raise_exc` (if set) is raised by `client.account.get_balance()` instead.
+    """
+    fake_client = Mock()
+    if raise_exc is not None:
+        fake_client.account.get_balance.side_effect = raise_exc
+    else:
+        fake_client.account.get_balance.return_value = get_balance
+    return types.SimpleNamespace(
+        Vonage=Mock(return_value=fake_client),
+        Auth=Mock(),
+    ), fake_client
+
+
+class TestVonageApiClientBalance:
+    """Tests for `VonageApiClient.async_get_balance` (feature 003)."""
+
+    def setup_method(self):
+        self.client = VonageApiClient(
+            api_key="test_key",
+            api_secret="super-secret-do-not-leak",
+            phone_number="+14155550100",
+        )
+
+    async def test_async_get_balance_success_with_auto_reload(
+        self, mock_balance_response_with_auto_reload
+    ):
+        """Returns AccountBalance with raw value, uppercased currency, and auto_reload."""
+        # Mutate currency to lowercase to verify normalization.
+        mock_balance_response_with_auto_reload.currency = "eur"
+        fake_module, _ = _make_vonage_module(
+            get_balance=mock_balance_response_with_auto_reload
+        )
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            result = await self.client.async_get_balance()
+
+        assert isinstance(result, AccountBalance)
+        assert result.value == 12.345  # raw, no rounding
+        assert result.currency == "EUR"
+        assert result.auto_reload is True
+        assert isinstance(result.fetched_at, datetime)
+        assert result.fetched_at.tzinfo is not None
+        assert result.fetched_at.utcoffset() == timezone.utc.utcoffset(result.fetched_at)
+
+    async def test_async_get_balance_success_without_auto_reload(
+        self, mock_balance_response_no_auto_reload
+    ):
+        """auto_reload is None when upstream omits the field."""
+        fake_module, _ = _make_vonage_module(
+            get_balance=mock_balance_response_no_auto_reload
+        )
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            result = await self.client.async_get_balance()
+
+        assert result.auto_reload is None
+        assert result.value == 12.345
+        assert result.currency == "EUR"
+
+    async def test_async_get_balance_auth_failed(self):
+        """HTTP 401 / authentication errors raise ConfigEntryAuthFailed."""
+
+        class _AuthErr(Exception):
+            status_code = 401
+
+        fake_module, _ = _make_vonage_module(raise_exc=_AuthErr("unauthorized"))
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            with pytest.raises(ConfigEntryAuthFailed):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_auth_failed_by_class_name(self):
+        """Auth errors detected by exception class name (no status code)."""
+
+        class AuthenticationError(Exception):
+            pass
+
+        fake_module, _ = _make_vonage_module(raise_exc=AuthenticationError("nope"))
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            with pytest.raises(ConfigEntryAuthFailed):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_transient_error(self):
+        """Generic exceptions (5xx, timeout, network) raise VonageBalanceError."""
+        fake_module, _ = _make_vonage_module(raise_exc=RuntimeError("boom"))
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            with pytest.raises(VonageBalanceError):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_malformed_payload_missing_value(self):
+        """Payload missing `value` raises VonageBalanceError."""
+        bad = types.SimpleNamespace(currency="EUR")
+        fake_module, _ = _make_vonage_module(get_balance=bad)
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            with pytest.raises(VonageBalanceError):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_malformed_payload_null_currency(self):
+        """Payload with null currency raises VonageBalanceError."""
+        bad = types.SimpleNamespace(value=10.0, currency=None)
+        fake_module, _ = _make_vonage_module(get_balance=bad)
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            with pytest.raises(VonageBalanceError):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_sdk_import_failure(self):
+        """ImportError on `from vonage import ...` raises VonageBalanceError."""
+        # Force the import inside _get_balance_sync to fail.
+        with patch.dict("sys.modules", {"vonage": None}):
+            with pytest.raises(VonageBalanceError):
+                await self.client.async_get_balance()
+
+    async def test_async_get_balance_logging_redacts_secret(self, caplog):
+        """API secret must never appear in any log output, even on failure."""
+        fake_module, _ = _make_vonage_module(raise_exc=RuntimeError("boom"))
+
+        with caplog.at_level("DEBUG"), patch.dict(
+            "sys.modules", {"vonage": fake_module}
+        ):
+            with pytest.raises(VonageBalanceError):
+                await self.client.async_get_balance()
+
+        for record in caplog.records:
+            assert "super-secret-do-not-leak" not in record.getMessage()
+
+    async def test_async_get_balance_success_logging_redacts_secret(
+        self, caplog, mock_balance_response_with_auto_reload
+    ):
+        """Secret must not appear in success-path debug logs."""
+        fake_module, _ = _make_vonage_module(
+            get_balance=mock_balance_response_with_auto_reload
+        )
+
+        with caplog.at_level("DEBUG"), patch.dict(
+            "sys.modules", {"vonage": fake_module}
+        ):
+            await self.client.async_get_balance()
+
+        for record in caplog.records:
+            assert "super-secret-do-not-leak" not in record.getMessage()

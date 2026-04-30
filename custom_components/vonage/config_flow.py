@@ -5,7 +5,10 @@ from typing import Any, Dict, Optional
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+try:
+    from homeassistant.config_entries import ConfigFlowResult  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover - HA < 2024.4 fallback
+    from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult  # type: ignore[assignment]
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -88,3 +91,24 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 "docs_url": "https://github.com/attila-vonage/vonage-homeassistant"
             },
         )
+
+    async def async_step_reauth(
+        self, entry_data: Dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Trigger re-authentication flow when credentials become invalid."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
+        """Re-authentication confirmation step.
+
+        Re-uses the user-input form so the user can update API key/secret.
+        """
+        if user_input is None:
+            return self.async_show_form(
+                step_id="reauth_confirm",
+                data_schema=STEP_USER_DATA_SCHEMA,
+            )
+        # Defer actual re-validation to async_step_user logic.
+        return await self.async_step_user(user_input)
