@@ -3,6 +3,7 @@
 Author: Attila Szasz
 """
 import logging
+from typing import TypedDict
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -20,11 +21,19 @@ from .const import (
     CONF_APPLICATION_ID,
     CONF_PRIVATE_KEY,
 )
+from .coordinator import VonageBalanceCoordinator
 from .services import async_setup_services, async_unload_services
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = []
+PLATFORMS: list[Platform] = [Platform.SENSOR]
+
+
+class VonageEntryData(TypedDict):
+    """Per-config-entry runtime data stored under hass.data[DOMAIN][entry_id]."""
+
+    api_client: VonageApiClient
+    balance_coordinator: VonageBalanceCoordinator
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -47,10 +56,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except Exception as err:
         _LOGGER.error("Failed to connect to Vonage API: %s", err)
         raise ConfigEntryNotReady("Unable to connect to Vonage API") from err
-    
-    # Store API client in hass data
+
+    # Create the balance coordinator and perform first refresh. This will
+    # raise ConfigEntryNotReady (from UpdateFailed) or ConfigEntryAuthFailed
+    # if Vonage rejects the request, preventing entity creation until success.
+    balance_coordinator = VonageBalanceCoordinator(hass, api_client)
+    await balance_coordinator.async_config_entry_first_refresh()
+
+    # Store API client + coordinator in hass data
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = api_client
+    hass.data[DOMAIN][entry.entry_id] = {
+        "api_client": api_client,
+        "balance_coordinator": balance_coordinator,
+    }
     
     # Set up services (vonage.make_call and notify.vonage_sms)
     await async_setup_services(hass, api_client)

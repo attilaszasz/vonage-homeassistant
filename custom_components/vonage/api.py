@@ -3,12 +3,19 @@
 Author: Attila Szasz
 """
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Optional
 import logging
 
 from homeassistant.exceptions import HomeAssistantError, ConfigEntryAuthFailed
 
 _LOGGER = logging.getLogger(__name__)
+
+DEFAULT_BALANCE_CURRENCY = "EUR"
+
+
+class VonageBalanceError(HomeAssistantError):
+    """Raised when the Vonage balance endpoint returns a non-auth failure."""
 
 
 @dataclass
@@ -44,6 +51,19 @@ class VoiceCallResponse:
     uuid: str  # Call UUID
     status: str  # "started", "ringing", etc.
     error: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class AccountBalance:
+    """Vonage account balance snapshot.
+
+    Returned by `VonageApiClient.async_get_balance`. Immutable.
+    """
+
+    value: float
+    currency: str
+    auto_reload: Optional[bool]
+    fetched_at: datetime  # tz-aware UTC
 
 
 class VonageApiClient:
@@ -307,3 +327,136 @@ class VonageApiClient:
         import asyncio
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self._test_voice_credentials_sync)
+
+    def _get_balance_sync(self) -> "AccountBalance":
+        """Synchronous balance fetch for executor.
+
+        Maps Vonage SDK responses/exceptions to feature contracts:
+        - HTTP 401 / authentication errors -> ConfigEntryAuthFailed
+        - any other failure (incl. malformed payload, ImportError, network) -> VonageBalanceError
+        Never logs `self.api_secret`.
+        """
+        from homeassistant.util import dt as dt_util
+
+        try:
+            from vonage import Vonage, Auth  # type: ignore[attr-defined]
+        except ImportError as err:
+            _LOGGER.error("Vonage SDK not available: %s", err)
+            raise VonageBalanceError("Vonage SDK not installed") from err
+
+        try:
+            auth = Auth(api_key=self.api_key, api_secret=self.api_secret)
+            client = Vonage(auth=auth)
+            response = client.account.get_balance()
+        except Exception as err:  # noqa: BLE001 — broad on purpose; classified below
+            status_code = self._extract_status_code(err)
+            request_id = self._extract_request_id(err)
+            if self._is_auth_error(err, status_code):
+                _LOGGER.error(
+                    "Vonage balance auth failure (status=%s, request_id=%s, exc=%s)",
+                    status_code,
+                    request_id,
+                    type(err).__name__,
+                )
+                raise ConfigEntryAuthFailed("Vonage authentication failed") from err
+            _LOGGER.error(
+                "Vonage balance fetch failed (status=%s, request_id=%s, exc=%s)",
+                status_code,
+                request_id,
+                type(err).__name__,
+            )
+            raise VonageBalanceError(
+                f"Vonage balance fetch failed ({type(err).__name__})"
+            ) from err
+
+        # Validate payload. The Vonage Account SDK's Balance model currently exposes
+        # value and auto_reload only; the account balance endpoint is documented as EUR.
+        try:
+            raw_value = getattr(response, "value")
+        except AttributeError as err:
+            _LOGGER.error("Vonage balance payload missing required field: %s", err)
+            raise VonageBalanceError("Malformed Vonage balance payload") from err
+
+        if raw_value is None:
+            _LOGGER.error("Vonage balance payload has null value")
+            raise VonageBalanceError("Malformed Vonage balance payload")
+
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError) as err:
+            _LOGGER.error("Vonage balance value is not numeric: %s", type(err).__name__)
+            raise VonageBalanceError("Malformed Vonage balance payload") from err
+
+        raw_currency = getattr(response, "currency", None) or DEFAULT_BALANCE_CURRENCY
+        currency = str(raw_currency).upper()
+
+        raw_auto_reload = getattr(response, "auto_reload", None)
+        auto_reload: Optional[bool]
+        if raw_auto_reload is None:
+            auto_reload = None
+        else:
+            auto_reload = bool(raw_auto_reload)
+
+        balance = AccountBalance(
+            value=value,
+            currency=currency,
+            auto_reload=auto_reload,
+            fetched_at=dt_util.utcnow(),
+        )
+        _LOGGER.debug(
+            "Vonage balance fetched: currency=%s auto_reload=%s",
+            currency,
+            auto_reload,
+        )
+        return balance
+
+    @staticmethod
+    def _extract_status_code(err: BaseException) -> Optional[int]:
+        """Best-effort extraction of an HTTP status code from a Vonage SDK error."""
+        for attr in ("status_code", "status", "http_status"):
+            value = getattr(err, attr, None)
+            if isinstance(value, int):
+                return value
+            if isinstance(value, str) and value.isdigit():
+                return int(value)
+        response = getattr(err, "response", None)
+        if response is not None:
+            value = getattr(response, "status_code", None)
+            if isinstance(value, int):
+                return value
+        return None
+
+    @staticmethod
+    def _extract_request_id(err: BaseException) -> Optional[str]:
+        """Best-effort extraction of the Vonage request id from an SDK error."""
+        for attr in ("request_id", "x_request_id"):
+            value = getattr(err, attr, None)
+            if isinstance(value, str) and value:
+                return value
+        return None
+
+    @classmethod
+    def _is_auth_error(cls, err: BaseException, status_code: Optional[int]) -> bool:
+        """Classify an SDK exception as an authentication failure."""
+        if status_code == 401:
+            return True
+        # Match by class name to avoid importing optional Vonage error modules.
+        for klass in type(err).__mro__:
+            if klass.__name__ in {
+                "AuthenticationError",
+                "InvalidAuthenticationError",
+                "Forbidden",
+            }:
+                return True
+        return False
+
+    async def async_get_balance(self) -> "AccountBalance":
+        """Fetch the current Vonage account balance.
+
+        Returns AccountBalance on success. Raises ConfigEntryAuthFailed on HTTP 401
+        (auth failure). Raises VonageBalanceError on any other failure.
+        """
+        import asyncio
+
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self._get_balance_sync)

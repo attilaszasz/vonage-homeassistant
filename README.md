@@ -11,6 +11,7 @@ Home Assistant integration for sending SMS notifications and making voice calls 
 
 - **SMS Notifications**: Send SMS messages via the `notify.vonage_sms` service
 - **Voice Calls**: Make outbound voice calls with text-to-speech via the `vonage.make_call` service
+- **Account Balance Sensor**: `sensor.vonage_account_balance` exposes the current account balance per config entry, polled every 15 minutes (`device_class: monetary`, `state_class: total`, unit = account currency, attributes: `last_updated`, optional `auto_reload`)
 - **Easy Configuration**: UI-based setup with credential validation
 - **Multiple Languages**: Support for 15+ languages for voice calls
 - **Error Handling**: Comprehensive error reporting and logging

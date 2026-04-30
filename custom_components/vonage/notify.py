@@ -22,7 +22,7 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Set up Vonage notify platform."""
-    api_client = hass.data[DOMAIN][config_entry.entry_id]
+    api_client = hass.data[DOMAIN][config_entry.entry_id]["api_client"]
     
     # Register the notification service directly
     notify_service = VonageSmsNotificationService(api_client)

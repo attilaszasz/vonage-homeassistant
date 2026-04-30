@@ -15,6 +15,13 @@ _LOGGER = logging.getLogger(__name__)
 
 SERVICE_MAKE_CALL = "make_call"
 
+
+def _entry_api_client(entry_data) -> VonageApiClient:
+    """Return the API client from current or legacy hass.data entry data."""
+    if isinstance(entry_data, dict):
+        return entry_data["api_client"]
+    return entry_data
+
 # Service schema for vonage.make_call
 MAKE_CALL_SCHEMA = vol.Schema({
     vol.Required("to"): cv.string,
@@ -49,8 +56,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         if language is None:
             # Get default from config entry stored in hass.data
             # Find the config entry for this API client
-            for entry_id, client in hass.data.get(DOMAIN, {}).items():
-                if client == api_client:
+            for entry_id, entry_data in hass.data.get(DOMAIN, {}).items():
+                if _entry_api_client(entry_data) == api_client:
                     config_entry = hass.config_entries.async_get_entry(entry_id)
                     if config_entry:
                         language = config_entry.data.get("default_language", "en-US")
@@ -60,8 +67,8 @@ async def async_setup_services(hass: HomeAssistant, api_client: VonageApiClient)
         
         if style is None:
             # Get default from config entry
-            for entry_id, client in hass.data.get(DOMAIN, {}).items():
-                if client == api_client:
+            for entry_id, entry_data in hass.data.get(DOMAIN, {}).items():
+                if _entry_api_client(entry_data) == api_client:
                     config_entry = hass.config_entries.async_get_entry(entry_id)
                     if config_entry:
                         style = config_entry.data.get("default_voice_style", 0)
