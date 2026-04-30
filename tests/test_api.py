@@ -246,6 +246,18 @@ class TestVonageApiClientBalance:
         assert result.value == 12.345
         assert result.currency == "EUR"
 
+    async def test_async_get_balance_success_with_sdk_balance_shape_no_currency(self):
+        """Real Vonage Account Balance responses omit currency; default it to EUR."""
+        fake_balance = types.SimpleNamespace(value=12.345, auto_reload=True)
+        fake_module, _ = _make_vonage_module(get_balance=fake_balance)
+
+        with patch.dict("sys.modules", {"vonage": fake_module}):
+            result = await self.client.async_get_balance()
+
+        assert result.value == 12.345
+        assert result.currency == "EUR"
+        assert result.auto_reload is True
+
     async def test_async_get_balance_auth_failed(self):
         """HTTP 401 / authentication errors raise ConfigEntryAuthFailed."""
 
@@ -287,14 +299,16 @@ class TestVonageApiClientBalance:
             with pytest.raises(VonageBalanceError):
                 await self.client.async_get_balance()
 
-    async def test_async_get_balance_malformed_payload_null_currency(self):
-        """Payload with null currency raises VonageBalanceError."""
+    async def test_async_get_balance_null_currency_defaults_to_eur(self):
+        """Payload with null currency defaults to EUR."""
         bad = types.SimpleNamespace(value=10.0, currency=None)
         fake_module, _ = _make_vonage_module(get_balance=bad)
 
         with patch.dict("sys.modules", {"vonage": fake_module}):
-            with pytest.raises(VonageBalanceError):
-                await self.client.async_get_balance()
+            result = await self.client.async_get_balance()
+
+        assert result.value == 10.0
+        assert result.currency == "EUR"
 
     async def test_async_get_balance_sdk_import_failure(self):
         """ImportError on `from vonage import ...` raises VonageBalanceError."""

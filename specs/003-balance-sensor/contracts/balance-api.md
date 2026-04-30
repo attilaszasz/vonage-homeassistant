@@ -33,7 +33,7 @@ See [data-model.md](../data-model.md) for full field semantics.
 | Raised | Trigger | Caller behavior |
 |---|---|---|
 | `ConfigEntryAuthFailed` (from `homeassistant.exceptions`) | Vonage SDK indicates HTTP 401 / authentication failure (e.g., `vonage.errors.AuthenticationError`, or any exception with status code 401). | Coordinator re-raises; HA core triggers re-authentication flow. |
-| `HomeAssistantError` (or feature-local `VonageBalanceError(HomeAssistantError)`) | Any other failure: timeouts, network errors, 5xx, rate limiting, 4xx ≠ 401, malformed payload (missing `value` or `currency`), SDK import failure. | Coordinator wraps as `UpdateFailed`; sensor becomes unavailable; recovers on next successful poll. |
+| `HomeAssistantError` (or feature-local `VonageBalanceError(HomeAssistantError)`) | Any other failure: timeouts, network errors, 5xx, rate limiting, 4xx ≠ 401, malformed payload (missing `value`), SDK import failure. | Coordinator wraps as `UpdateFailed`; sensor becomes unavailable; recovers on next successful poll. |
 
 The wrapper MUST NOT raise bare `Exception` to callers. Anything not classified as auth-failed is normalized to `HomeAssistantError`.
 
@@ -51,7 +51,7 @@ Implemented as `await asyncio.get_event_loop().run_in_executor(None, self._get_b
 
 | Criterion | Spec FR |
 |---|---|
-| Returns `AccountBalance` with `value` (float, raw precision) and `currency` (uppercased ISO code) on success | FR-002, FR-003, Clarif. Q3 |
+| Returns `AccountBalance` with `value` (float, raw precision) and `currency` (uppercased ISO code; defaults to `EUR` when omitted by the Vonage Account SDK) on success | FR-002, FR-003, Clarif. Q3 |
 | Returns `auto_reload=None` when upstream omits the field | FR-014 |
 | Raises `ConfigEntryAuthFailed` only on HTTP 401 | FR-011, Clarif. Q4 |
 | Raises `HomeAssistantError` on any other failure including 4xx ≠ 401, 5xx, timeouts, rate limit, malformed payload | FR-012, Edge Cases |
@@ -66,6 +66,7 @@ All scenarios MUST be covered by `tests/test_api.py` with `vonage.Vonage` and `v
 | Scenario | SDK behavior | Expected outcome |
 |---|---|---|
 | Happy path with auto-reload | `client.account.get_balance()` returns object with `value=12.345`, `currency="eur"`, `auto_reload=True` | Returns `AccountBalance(12.345, "EUR", True, fetched_at=<tz-aware utc>)` |
+| Real SDK happy path | `client.account.get_balance()` returns object with `value=12.345`, `auto_reload=True` and no `currency` attribute | Returns `AccountBalance(12.345, "EUR", True, fetched_at=<tz-aware utc>)` |
 | Happy path without auto-reload | Same as above but no `auto_reload` attribute | Returns `AccountBalance(..., auto_reload=None)` |
 | 401 / auth error | SDK raises an authentication error (or `Exception` with status 401) | Raises `ConfigEntryAuthFailed`; log line contains status code; secret absent |
 | Generic HTTP error (500/429/timeout) | SDK raises a generic exception | Raises `HomeAssistantError`; log line contains exception class; secret absent |

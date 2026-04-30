@@ -36,8 +36,21 @@ class VonageBalanceCoordinator(DataUpdateCoordinator[AccountBalance]):
         except VonageBalanceError as err:
             # Wrap as UpdateFailed; do not propagate raw exception args that
             # could carry credentials.
-            raise UpdateFailed(f"Vonage balance update failed: {type(err).__name__}") from err
+            raise UpdateFailed(
+                f"Vonage balance update failed: {self._redact_message(str(err))}"
+            ) from err
         except Exception as err:  # noqa: BLE001 — defensive net
             raise UpdateFailed(
                 f"Vonage balance update failed: {type(err).__name__}"
             ) from err
+
+    def _redact_message(self, message: str) -> str:
+        """Redact configured credentials from a diagnostic message."""
+        redacted = message or "VonageBalanceError"
+        for credential in (
+            getattr(self.api_client, "api_key", None),
+            getattr(self.api_client, "api_secret", None),
+        ):
+            if isinstance(credential, str) and credential:
+                redacted = redacted.replace(credential, "***")
+        return redacted

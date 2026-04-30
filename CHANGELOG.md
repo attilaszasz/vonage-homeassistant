@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-04-30
+
+### Fixed
+- **Account balance setup retry loop**: The real Vonage Account SDK balance
+  response includes `value` and `auto_reload`, but does not include a currency
+  field. The balance sensor now defaults the unit to `EUR` when the SDK omits
+  currency, matching the Account API balance model and preventing setup from
+  failing with `Vonage balance update failed: VonageBalanceError`.
+- Improved balance coordinator setup diagnostics while redacting configured API
+  credentials from error messages.
+
 ## [1.1.0] - 2026-04-30
 
 ### Added

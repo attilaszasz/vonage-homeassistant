@@ -55,6 +55,20 @@ async def test_coordinator_wraps_transient_as_update_failed(hass):
     assert coordinator.last_update_success is False
 
 
+async def test_coordinator_update_failed_includes_sanitized_message(hass):
+    """UpdateFailed keeps useful diagnostics from sanitized VonageBalanceError messages."""
+    api_client = AsyncMock()
+    api_client.async_get_balance = AsyncMock(
+        side_effect=VonageBalanceError("Malformed Vonage balance payload")
+    )
+    coordinator = VonageBalanceCoordinator(hass, api_client)
+
+    with pytest.raises(UpdateFailed) as exc_info:
+        await coordinator._async_update_data()
+
+    assert "Malformed Vonage balance payload" in str(exc_info.value)
+
+
 async def test_coordinator_recovery_after_failure(hass):
     """After a failed refresh, the next successful refresh restores data."""
     api_client = AsyncMock()
@@ -75,6 +89,7 @@ async def test_coordinator_recovery_after_failure(hass):
 async def test_coordinator_redacts_exception_args_in_update_failed(hass):
     """UpdateFailed message must not echo raw exception args (e.g., credentials)."""
     api_client = AsyncMock()
+    api_client.api_secret = "super-secret-do-not-leak"
     api_client.async_get_balance = AsyncMock(
         side_effect=VonageBalanceError("super-secret-do-not-leak in here")
     )
@@ -84,3 +99,4 @@ async def test_coordinator_redacts_exception_args_in_update_failed(hass):
         await coordinator._async_update_data()
 
     assert "super-secret-do-not-leak" not in str(exc_info.value)
+    assert "*** in here" in str(exc_info.value)

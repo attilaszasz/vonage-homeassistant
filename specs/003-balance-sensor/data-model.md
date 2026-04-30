@@ -12,13 +12,13 @@ Defined in `custom_components/vonage/api.py` as a `@dataclass(frozen=True)` (mat
 | Field | Type | Required | Source | Notes |
 |---|---|---|---|---|
 | `value` | `float` | Yes | Vonage SDK `BalanceResponse.value` | Numeric balance, raw precision (no rounding — Spec Clarif. Q3). May be `0` or negative (Spec Edge Cases). |
-| `currency` | `str` | Yes | Vonage SDK `BalanceResponse.currency` | ISO 4217 currency code, e.g., `"EUR"`. Used as `native_unit_of_measurement`. |
+| `currency` | `str` | Yes | Vonage SDK `BalanceResponse.currency` when present; defaults to `"EUR"` for the real Account SDK balance model | ISO 4217 currency code. Used as `native_unit_of_measurement`. |
 | `auto_reload` | `bool \| None` | No | Vonage SDK `BalanceResponse.auto_reload` | Optional. `None` if upstream omits it (Spec FR-014). |
 | `fetched_at` | `datetime` | Yes | `dt_util.utcnow()` at successful fetch | Timezone-aware UTC. Used for the sensor's `last_updated` attribute (Spec FR-015). |
 
 ### Validation rules
 
-- A response missing `value` OR `currency` is invalid → wrapper raises `VonageBalanceError` (mapped by coordinator to `UpdateFailed`). See Spec Edge Cases ("Partial payload").
+- A response missing `value` is invalid → wrapper raises `VonageBalanceError` (mapped by coordinator to `UpdateFailed`). See Spec Edge Cases ("Partial payload"). Missing or null `currency` defaults to `"EUR"` because the real Vonage Account SDK balance model exposes `value` and `auto_reload` only.
 - `value` MUST be coerced to `float` (the SDK may return `Decimal` or string-typed JSON in some versions); `currency` MUST be coerced to `str` and uppercased.
 - `auto_reload` is coerced to `bool` only when the upstream attribute is present and not `None`; otherwise stored as `None`.
 

@@ -11,6 +11,8 @@ from homeassistant.exceptions import HomeAssistantError, ConfigEntryAuthFailed
 
 _LOGGER = logging.getLogger(__name__)
 
+DEFAULT_BALANCE_CURRENCY = "EUR"
+
 
 class VonageBalanceError(HomeAssistantError):
     """Raised when the Vonage balance endpoint returns a non-auth failure."""
@@ -367,16 +369,16 @@ class VonageApiClient:
                 f"Vonage balance fetch failed ({type(err).__name__})"
             ) from err
 
-        # Validate payload
+        # Validate payload. The Vonage Account SDK's Balance model currently exposes
+        # value and auto_reload only; the account balance endpoint is documented as EUR.
         try:
             raw_value = getattr(response, "value")
-            raw_currency = getattr(response, "currency")
         except AttributeError as err:
             _LOGGER.error("Vonage balance payload missing required field: %s", err)
             raise VonageBalanceError("Malformed Vonage balance payload") from err
 
-        if raw_value is None or raw_currency is None:
-            _LOGGER.error("Vonage balance payload has null value or currency")
+        if raw_value is None:
+            _LOGGER.error("Vonage balance payload has null value")
             raise VonageBalanceError("Malformed Vonage balance payload")
 
         try:
@@ -385,6 +387,7 @@ class VonageApiClient:
             _LOGGER.error("Vonage balance value is not numeric: %s", type(err).__name__)
             raise VonageBalanceError("Malformed Vonage balance payload") from err
 
+        raw_currency = getattr(response, "currency", None) or DEFAULT_BALANCE_CURRENCY
         currency = str(raw_currency).upper()
 
         raw_auto_reload = getattr(response, "auto_reload", None)
