@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.1.2] - 2026-05-12
+
+### Fixed
+- Hardened Vonage authentication input handling ahead of the May 31, 2026 API
+  validation changes: the config flow now rejects API keys and API secrets with
+  leading or trailing whitespace, and voice private keys are normalized
+  consistently so validation and runtime auth use the same PEM value.
+
 ## [1.1.1] - 2026-04-30
 
 ### Fixed

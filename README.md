@@ -190,7 +190,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [hacs-shield]: https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge
 [hacs-url]: https://hacs.xyz/
-[version-shield]: https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge
+[version-shield]: https://img.shields.io/badge/version-1.1.2-blue.svg?style=for-the-badge
 [releases-url]: https://github.com/attilaszasz/vonage-homeassistant/releases
 [ha-shield]: https://img.shields.io/badge/Home%20Assistant-2024.1+-41BDF5.svg?style=for-the-badge
 [ha-url]: https://www.home-assistant.io/

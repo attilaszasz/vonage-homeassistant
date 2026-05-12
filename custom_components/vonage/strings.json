@@ -18,7 +18,8 @@
     "error": {
       "invalid_auth": "Invalid Vonage credentials",
       "cannot_connect": "Failed to connect to Vonage API",
-      "voice_incomplete": "Both Application ID and Private Key are required for Voice API"
+      "voice_incomplete": "Both Application ID and Private Key are required for Voice API",
+      "invalid_whitespace": "Value cannot be blank or include leading or trailing whitespace"
     }
   },
   "services": {

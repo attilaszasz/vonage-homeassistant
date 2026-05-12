@@ -73,6 +73,52 @@ class TestVonageConfigFlow:
         assert result["type"] == FlowResultType.FORM
         assert result["errors"] == {"base": "invalid_auth"}
 
+    async def test_form_user_rejects_api_key_with_surrounding_whitespace(self, hass):
+        """Test user form rejects API keys with surrounding whitespace."""
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+        with patch(
+            "custom_components.vonage.api.VonageApiClient.test_sms_credentials",
+            return_value=True,
+        ) as mock_validate:
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "api_key": " test_key",
+                    "api_secret": "test_secret",
+                    "phone_number": "+14155550100",
+                },
+            )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"api_key": "invalid_whitespace"}
+        mock_validate.assert_not_called()
+
+    async def test_form_user_rejects_whitespace_only_api_secret(self, hass):
+        """Test user form rejects whitespace-only API secrets."""
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+        with patch(
+            "custom_components.vonage.api.VonageApiClient.test_sms_credentials",
+            return_value=True,
+        ) as mock_validate:
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "api_key": "test_key",
+                    "api_secret": "   ",
+                    "phone_number": "+14155550100",
+                },
+            )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"api_secret": "invalid_whitespace"}
+        mock_validate.assert_not_called()
+
     async def test_form_user_with_voice_credentials(self, hass, mock_setup_entry):
         """Test user form with Voice credentials included."""
         result = await hass.config_entries.flow.async_init(
@@ -281,3 +327,43 @@ class TestVonageConfigFlow:
         assert entry.data["default_language"] == "en-US"
         assert entry.data["default_voice_style"] == 0
         mock_reload.assert_awaited_once_with(entry.entry_id)
+
+    async def test_reauth_rejects_api_secret_with_surrounding_whitespace(self, hass):
+        """Test re-authentication rejects padded API secrets before SDK validation."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            title="Vonage",
+            data={
+                "api_key": "old_key",
+                "api_secret": "old_secret",
+                "phone_number": "+14155550100",
+            },
+            entry_id="test_entry",
+        )
+        entry.add_to_hass(hass)
+
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_REAUTH,
+                "entry_id": entry.entry_id,
+            },
+            data=entry.data,
+        )
+
+        with patch(
+            "custom_components.vonage.api.VonageApiClient.test_sms_credentials",
+            return_value=True,
+        ) as mock_validate:
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "api_key": "new_key",
+                    "api_secret": "new_secret ",
+                    "phone_number": "+14155550100",
+                },
+            )
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {"api_secret": "invalid_whitespace"}
+        mock_validate.assert_not_called()

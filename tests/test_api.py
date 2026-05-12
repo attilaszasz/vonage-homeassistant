@@ -28,6 +28,18 @@ class TestVonageApiClient:
             private_key="-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----"
         )
 
+    def test_private_key_is_normalized_on_init(self):
+        """Test private key outer whitespace is stripped during initialization."""
+        client = VonageApiClient(
+            api_key="test_key",
+            api_secret="test_secret",
+            phone_number="+14155550100",
+            application_id="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            private_key="  -----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----\n",
+        )
+
+        assert client.private_key == "-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----"
+
     async def test_send_sms_success(self):
         """Test successful SMS sending."""
         fake_message = types.SimpleNamespace(status="0", message_id="0A00000012345", error_text=None)
@@ -116,6 +128,49 @@ class TestVonageApiClient:
             }]
         }
         fake_client.voice.create_call.assert_called_once_with(expected_call_data)
+
+    async def test_make_call_uses_normalized_private_key(self):
+        """Test runtime voice auth receives the normalized private key."""
+        client = VonageApiClient(
+            api_key="test_key",
+            api_secret="test_secret",
+            phone_number="+14155550100",
+            application_id="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            private_key="-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----\n",
+        )
+
+        fake_response = types.SimpleNamespace(
+            uuid="aaaaaaaa-bbbb-cccc-dddd-000000000000",
+            status="started"
+        )
+        fake_client = Mock()
+        fake_client.voice.create_call.return_value = fake_response
+        fake_vonage_cls = Mock(return_value=fake_client)
+        fake_auth_cls = Mock()
+        fake_vonage_module = types.SimpleNamespace(Vonage=fake_vonage_cls, Auth=fake_auth_cls)
+
+        with patch.dict("sys.modules", {"vonage": fake_vonage_module}):
+            await client.make_call("+14155550101", "Test message", "en-US", 0)
+
+        fake_auth_cls.assert_called_once_with(
+            application_id="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            private_key="-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----",
+        )
+
+    async def test_test_voice_credentials_uses_normalized_private_key(self):
+        """Test voice credential validation uses the normalized private key."""
+        client = VonageApiClient(
+            api_key="test_key",
+            api_secret="test_secret",
+            phone_number="+14155550100",
+            application_id="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            private_key="-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----\n",
+        )
+
+        with patch("jwt.encode", return_value="token") as mock_encode:
+            assert await client.test_voice_credentials() is True
+
+        assert mock_encode.call_args.args[1] == "-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----"
 
     async def test_make_call_voice_not_configured(self):
         """Test voice call when Voice not configured."""

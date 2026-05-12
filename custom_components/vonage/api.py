@@ -82,7 +82,7 @@ class VonageApiClient:
         self.api_secret = api_secret
         self.phone_number = phone_number
         self.application_id = application_id
-        self.private_key = private_key
+        self.private_key = private_key.strip() if isinstance(private_key, str) else private_key
 
     def _format_phone_for_voice(self, phone: str) -> str:
         """Format phone number for Voice API requirements.
@@ -297,7 +297,7 @@ class VonageApiClient:
                 return False
                 
             # Validate private key format first
-            if not self.private_key.strip().startswith('-----BEGIN'):
+            if not self.private_key.startswith('-----BEGIN'):
                 _LOGGER.error("Private key must be in PEM format")
                 return False
                 
@@ -312,7 +312,7 @@ class VonageApiClient:
             
             # If this doesn't raise an exception, credentials are valid
             # Use the private key directly as PyJWT expects PEM format
-            token = jwt.encode(payload, self.private_key.strip(), algorithm="RS256")
+            token = jwt.encode(payload, self.private_key, algorithm="RS256")
             return token is not None and len(token) > 0
             
         except jwt.InvalidKeyError as err:

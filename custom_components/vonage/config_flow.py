@@ -25,6 +25,11 @@ from .api import VonageApiClient
 
 _LOGGER = logging.getLogger(__name__)
 
+_STRICT_SMS_CREDENTIAL_FIELDS = (
+    CONF_API_KEY,
+    CONF_API_SECRET,
+)
+
 # Schema for user input
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_API_KEY): cv.string,
@@ -45,11 +50,28 @@ class VonageConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
 
     _vonage_reauth_entry_id: str | None = None
 
+    def _validate_sms_credential_format(
+        self, user_input: Dict[str, Any]
+    ) -> dict[str, str]:
+        """Reject blank or whitespace-padded SMS credentials."""
+        errors: dict[str, str] = {}
+
+        for field in _STRICT_SMS_CREDENTIAL_FIELDS:
+            value = user_input.get(field)
+            if not isinstance(value, str):
+                continue
+            if not value.strip() or value != value.strip():
+                errors[field] = "invalid_whitespace"
+
+        return errors
+
     async def _async_validate_user_input(
         self, user_input: Dict[str, Any]
     ) -> dict[str, str]:
         """Validate Vonage SMS and optional Voice credentials."""
-        errors: dict[str, str] = {}
+        errors = self._validate_sms_credential_format(user_input)
+        if errors:
+            return errors
 
         api_client = VonageApiClient(
             api_key=user_input[CONF_API_KEY],
